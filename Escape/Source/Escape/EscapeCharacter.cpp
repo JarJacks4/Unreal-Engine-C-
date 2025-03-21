@@ -9,6 +9,7 @@
 #include "GameFramework/Controller.h"
 #include "EnhancedInputComponent.h"
 #include "EnhancedInputSubsystems.h"
+#include "MeditationComponent.h"
 #include "InputActionValue.h"
 
 DEFINE_LOG_CATEGORY(LogTemplateCharacter);
@@ -50,6 +51,12 @@ AEscapeCharacter::AEscapeCharacter()
 	FollowCamera->SetupAttachment(CameraBoom, USpringArmComponent::SocketName); // Attach the camera to the end of the boom and let the boom adjust to match the controller orientation
 	FollowCamera->bUsePawnControlRotation = false; // Camera does not rotate relative to arm
 
+	// Create and attach the meditation component to this character
+	MeditationComponent = CreateDefaultSubobject<UMeditationComponent>(TEXT("MeditationComponent"));
+
+	// Initializing the input action as null
+	MeditateAction = nullptr;
+
 	// Note: The skeletal mesh and anim blueprint references on the Mesh component (inherited from Character) 
 	// are set in the derived blueprint asset named ThirdPersonCharacter (to avoid direct content references in C++)
 }
@@ -76,9 +83,15 @@ void AEscapeCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCom
 	// Set up action bindings
 	if (UEnhancedInputComponent* EnhancedInputComponent = Cast<UEnhancedInputComponent>(PlayerInputComponent)) {
 		
+		// If the meditation component is set, bind the media action s
+		if (MeditateAction)
+		{
+			// Bind the "Started" trigger (e.g., key press or touch) to start meditation
+			EnhancedInputComponent->BindAction(MeditateAction, ETriggerEvent::Started, this, &AEscapeCharacter::Meditate);
+		}
 		// Jumping
-		EnhancedInputComponent->BindAction(JumpAction, ETriggerEvent::Started, this, &ACharacter::Jump);
-		EnhancedInputComponent->BindAction(JumpAction, ETriggerEvent::Completed, this, &ACharacter::StopJumping);
+		EnhancedInputComponent->BindAction(JumpAction, ETriggerEvent::Started, this, &AEscapeCharacter::Jump);
+		EnhancedInputComponent->BindAction(JumpAction, ETriggerEvent::Completed, this, &AEscapeCharacter::StopJumping);
 
 		// Moving
 		EnhancedInputComponent->BindAction(MoveAction, ETriggerEvent::Triggered, this, &AEscapeCharacter::Move);
@@ -92,29 +105,51 @@ void AEscapeCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCom
 	}
 }
 
-void AEscapeCharacter::Move(const FInputActionValue& Value)
+// Called to start meditating on pc
+void AEscapeCharacter::Meditate(const FInputActionValue& Value)
 {
-	// input is a Vector2D
-	FVector2D MovementVector = Value.Get<FVector2D>();
-
-	if (Controller != nullptr)
+	// Check if the meditation component exists before triggering
+	if (MeditationComponent)
 	{
-		// find out which way is forward
-		const FRotator Rotation = Controller->GetControlRotation();
-		const FRotator YawRotation(0, Rotation.Yaw, 0);
-
-		// get forward vector
-		const FVector ForwardDirection = FRotationMatrix(YawRotation).GetUnitAxis(EAxis::X);
-	
-		// get right vector 
-		const FVector RightDirection = FRotationMatrix(YawRotation).GetUnitAxis(EAxis::Y);
-
-		// add movement 
-		AddMovementInput(ForwardDirection, MovementVector.Y);
-		AddMovementInput(RightDirection, MovementVector.X);
+		MeditationComponent->Meditation();
 	}
 }
+void AEscapeCharacter::Move(const FInputActionValue& Value)
+{
+	// Checks if the meditationstate is idle in order to move
+	if (MeditationComponent->GetMeditationState() == EMeditationState::Idle) {
+		// input is a Vector2D
+		FVector2D MovementVector = Value.Get<FVector2D>();
 
+		if (Controller != nullptr)
+		{
+			// find out which way is forward
+			const FRotator Rotation = Controller->GetControlRotation();
+			const FRotator YawRotation(0, Rotation.Yaw, 0);
+
+			// get forward vector
+			const FVector ForwardDirection = FRotationMatrix(YawRotation).GetUnitAxis(EAxis::X);
+
+			// get right vector 
+			const FVector RightDirection = FRotationMatrix(YawRotation).GetUnitAxis(EAxis::Y);
+
+			// add movement 
+			AddMovementInput(ForwardDirection, MovementVector.Y);
+			AddMovementInput(RightDirection, MovementVector.X);
+		}
+	}
+}
+void AEscapeCharacter::Jump()
+{
+	bPressedJump = true;
+	JumpKeyHoldTime = 0.0f;
+}
+
+void AEscapeCharacter::StopJumping()
+{
+	bPressedJump = false;
+	ResetJumpState();
+}
 void AEscapeCharacter::Look(const FInputActionValue& Value)
 {
 	// input is a Vector2D

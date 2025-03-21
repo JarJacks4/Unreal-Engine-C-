@@ -46,10 +46,34 @@ class AEscapeCharacter : public ACharacter
 
 public:
 	AEscapeCharacter();
-	
+
+	/**
+	 * Meditation component responsible for handling the meditation mechanic.
+	 * Exposed to Blueprints for easy access and configuration.
+	 */
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components")
+	TObjectPtr<class UMeditationComponent> MeditationComponent;
+
+	/**
+	 * Input action specifically for triggering the meditation mechanic.
+	 * Bound to start/stop meditation functions via Enhanced Input.
+	 * Assigned in the Editor or Blueprint.
+	 */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Input")
+	TObjectPtr<class UInputAction> MeditateAction;
+
+private:
+	/**
+    * Starts meditation when the input action is triggered (e.g., press).
+    * @param Value The input value (unused here but required by Enhanced Input).
+    */
+	void Meditate(const FInputActionValue& Value);
 
 protected:
-
+	//**Function called to start jumping */
+	void Jump();
+	//** Function called to stop jumping */
+	void StopJumping();
 	/** Called for movement input */
 	void Move(const FInputActionValue& Value);
 
