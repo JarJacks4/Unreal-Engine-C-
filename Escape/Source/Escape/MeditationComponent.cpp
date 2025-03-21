@@ -69,9 +69,11 @@ void UMeditationComponent::HandleMeditationStart()
         if (MeditationMusicComponent)
         {
             MeditationMusicComponent->Stop();
+           
         }
         // Create and play the music via an audio component
-        MeditationMusicComponent = UGameplayStatics::SpawnSound2D(GetWorld(), MeditationMusic);
+        MeditationMusicComponent = UGameplayStatics::CreateSound2D(GetWorld(), MeditationMusic);
+        MeditationMusicComponent->Play();
     }
 
     // Set timer only if duration is positive

@@ -2,7 +2,7 @@
 #pragma once
 #include "CoreMinimal.h"
 #include "Components/ActorComponent.h"
-#include "Sound/SoundBase.h" // For USoundBase
+#include "Sound/SoundCue.h"
 #include "MeditationComponent.generated.h"
 
 /**
@@ -61,11 +61,11 @@ private:
     UPROPERTY(EditAnywhere, Category = "Meditation", meta = (ClampMin = "0.0", UIMin = "0.0"))
     float MeditationDuration = 10.0f;
 
-    /** Ambient music to play during meditation. */
-    UPROPERTY(EditAnywhere, Category = "Meditation")
-    TObjectPtr<USoundBase> MeditationMusic;
-
+    
     // --- Runtime State ---
+    /** Keditation cue goes here*/
+    UPROPERTY(EditAnywhere, Category = "Meditation")
+    TObjectPtr<USoundCue> MeditationMusic;
 
     /** Current state of the meditation mechanic. */
     UPROPERTY(VisibleInstanceOnly, Category = "Meditation", Transient)
@@ -80,14 +80,14 @@ private:
 
     /** Audio component for playing and stopping meditation music. */
     UPROPERTY(Transient)
-    TObjectPtr<class UAudioComponent> MeditationMusicComponent;
-
+    TObjectPtr<UAudioComponent> MeditationMusicComponent;
     // --- Internal Methods ---
 
     /**
      * Handles the start of meditation: sets state, plays animation/music, and optionally starts a timer.
      */
     void HandleMeditationStart();
+
 
     /**
      * Handles the end of meditation: stops animation/music and resets state.
