@@ -141,8 +141,11 @@ void AEscapeCharacter::Move(const FInputActionValue& Value)
 }
 void AEscapeCharacter::Jump()
 {
-	bPressedJump = true;
-	JumpKeyHoldTime = 0.0f;
+	// Checks if the meditation state is idle in order to jump
+	if (MeditationComponent->GetMeditationState() == EMeditationState::Idle) {
+		bPressedJump = true;
+		JumpKeyHoldTime = 0.0f;
+	}
 }
 
 void AEscapeCharacter::StopJumping()
