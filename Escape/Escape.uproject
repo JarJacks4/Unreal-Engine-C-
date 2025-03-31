@@ -50,6 +50,10 @@
 			"SupportedTargetPlatforms": [
 				"Android"
 			]
+		},
+		{
+			"Name": "LiveLinkControlRig",
+			"Enabled": true
 		}
 	]
 }
