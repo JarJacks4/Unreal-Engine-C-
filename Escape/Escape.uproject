@@ -61,6 +61,15 @@
 		},
 		{
 			"Name": "LiveLinkControlRig",
+			"Name": "GPULightmass",
+			"Enabled": true
+		},
+		{
+			"Name": "HDRIBackdrop",
+			"Enabled": true
+		},
+		{
+			"Name": "Water",
 			"Enabled": true
 		}
 	]
