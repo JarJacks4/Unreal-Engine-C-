@@ -52,15 +52,15 @@
 			]
 		},
 		{
-			"Name": "MetaHuman",
-			"Enabled": true,
-			"SupportedTargetPlatforms": [
-				"Win64",
-				"Linux"
-			]
+			"Name": "GPULightmass",
+			"Enabled": true
 		},
 		{
-			"Name": "LiveLinkControlRig",
+			"Name": "HDRIBackdrop",
+			"Enabled": true
+		},
+		{
+			"Name": "Water",
 			"Enabled": true
 		}
 	]
