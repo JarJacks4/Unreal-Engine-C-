@@ -64,8 +64,8 @@ LogPluginManager: Mounting Engine plugin ChaosCloth
 LogPluginManager: Mounting Engine plugin ChaosVD
 LogPluginManager: Mounting Engine plugin CmdLinkServer
 LogPluginManager: Mounting Engine plugin EnhancedInput
-LogPluginManager: Mounting Engine plugin Fab
 LogPluginManager: Mounting Engine plugin FastBuildController
+LogPluginManager: Mounting Engine plugin Fab
 LogPluginManager: Mounting Engine plugin MeshPainting
 LogPluginManager: Mounting Engine plugin RenderGraphInsights
 LogPluginManager: Mounting Engine plugin TraceUtilities
@@ -81,6 +81,7 @@ LogPluginManager: Mounting Engine plugin KDevelopSourceCodeAccess
 LogPluginManager: Mounting Engine plugin N10XSourceCodeAccess
 LogPluginManager: Mounting Engine plugin NullSourceCodeAccess
 LogPluginManager: Mounting Engine plugin PerforceSourceControl
+LogPluginManager: Mounting Engine plugin PlasticSourceControl
 LogPluginManager: Mounting Engine plugin PixWinPlugin
 LogPluginManager: Mounting Engine plugin PlasticSourceControl
 LogPluginManager: Mounting Engine plugin PluginUtils
@@ -314,6 +315,15 @@ LogInit: Creating http thread with maximum 2147483647 concurrent requests
 LogInit: WinSock: version 1.1 (2.2), MaxSocks=32767, MaxUdp=65467
 LogOnline: OSS: Created online subsystem instance for: NULL
 LogOnline: OSS: TryLoadSubsystemAndSetDefault: Loaded subsystem for type [NULL]
+LogWindows: Failed to load 'WinPixGpuCapturer.dll' (GetLastError=126)
+LogWindows: File 'WinPixGpuCapturer.dll' does not exist
+PixWinPlugin: PIX capture plugin failed to initialize! Check that the process is launched from PIX.
+LogConfig: Applying CVar settings from Section [/Script/RenderDocPlugin.RenderDocPluginSettings] File [Engine]
+RenderDocPlugin: Display: RenderDoc plugin will not be loaded. Use '-AttachRenderDoc' on the cmd line or enable 'renderdoc.AutoAttach' in the plugin settings.
+LogGPULightmass: GPULightmass module is loaded
+LogNFORDenoise: NFORDenoise function starting up
+LogStudioTelemetry: Display: Starting StudioTelemetry Module
+LogStudioTelemetry: Started StudioTelemetry Session
 LogInit: ExecutableName: UnrealEditor.exe
 LogInit: Build: ++UE5+Release-5.5-CL-40574608
 LogInit: Platform=WindowsEditor
