@@ -86,7 +86,7 @@ void UDeepBreathingComponent::OnBreathingBubbleTapped()
 {  
     UBreathingBubbleWidget* BreathingWidget = Cast<AEscapeCharacter>(OwningCharacter)->GetActivityUIWidget()->GetDeepBreathingWidget();
    // Check if tap occurs when bubble is small (perfect timing)  
-   if (BubbleScale >= 0.4f && BubbleScale <= 0.6f && ScaleDirection<= 0)  
+   if (BubbleScale >= 0.4f && BubbleScale <= 0.8f && ScaleDirection<= 0)  
    {  
        BubbleScale = 1.5f;
        BreathingWidget->SetRenderScale(FVector2D(BubbleScale, BubbleScale)); // Expand
@@ -95,7 +95,7 @@ void UDeepBreathingComponent::OnBreathingBubbleTapped()
    }
    else {
 
-       StopDeepBreathing();
+       Cast<AEscapeCharacter>(OwningCharacter)->SecondCounterBreathing->UpdateElapsedTime(-5);
    }
 }  
 
@@ -110,7 +110,8 @@ void UDeepBreathingComponent::UpdateBreathingBubble(float DeltaTime)
    }
    else if (BubbleScale < 0.5f)
    {
-       StopDeepBreathing();
+       Cast<AEscapeCharacter>(OwningCharacter)->SecondCounterBreathing->UpdateElapsedTime(-1);
+       ScaleDirection = 1.0f;
    }
 
    BreathingWidget->SetRenderScale(FVector2D(BubbleScale, BubbleScale)); // Shrink  

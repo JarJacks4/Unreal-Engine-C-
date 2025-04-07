@@ -20,6 +20,9 @@ public:
     UFUNCTION(BlueprintCallable, Category = "Counter")
     float GetElapsedTime() { return ElapsedTime; }
 
+    UFUNCTION(BlueprintCallable, Category = "Counter")
+    void UpdateElapsedTime(float ElapsedTimeP) { ElapsedTime += ElapsedTimeP; }
+
     void SetScoreWidget(UScoreWidget* ScoreWidgetp) {  
        ScoreWidget = ScoreWidgetp; 
     }

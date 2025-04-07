@@ -175,12 +175,12 @@ void AEscapeCharacter::Activity()
 
 			}
 		case EMinuteGoalActionsState::Stretching:
-			// Start stretching
+			// Stop stretching
 			StretchingComponent->StopStretching();
 			return;
 		case EMinuteGoalActionsState::DeepBreathing:
-			// Start Deep Breathing
-			//DeepBreathingComponent->StopDeepBreathing();
+			// Stop Deep Breathing
+			DeepBreathingComponent->StopDeepBreathing();
 			return;
 		}
 	}
