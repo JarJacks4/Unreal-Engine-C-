@@ -37,15 +37,25 @@ class ESCAPE_API AWellnessBlock : public AActor
 public:
     // Constructor
     AWellnessBlock();
+
+
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Rotation", meta = (ClampMin = "0.0", UIMin = "0.0"))
+    float RotationSpeed = 100.0f;
+
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Rotation", meta = (ClampMin = "0.0", UIMin = "0.0"))
+    float MaxRotationAngle = 45.0f;
+
+    UFUNCTION(BlueprintCallable, Category = "Rotation")
+    float GetCurrentRotation() const { return CurrentRotation; }
+
+
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Mobile UI Widget")
     UCapsuleComponent* SceneRoot;
     UFUNCTION(BlueprintCallable)
     void SetMeditationBlockState(EMeditationBlockState MeditationBlock) { MeditationBlockState = MeditationBlock; };
     UPROPERTY(VisibleAnywhere)
     TWeakObjectPtr<ACharacter> PlayerRef;
-    /**
-    * Called every frame to update the levitation effect for meditation blocks.
-    */
+
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Meditation")
     float MaxDistanceFromGround;
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Meditation")
@@ -96,6 +106,17 @@ protected:
     FTimerHandle LevitationTimerHandle;
 
 private:
+    // Internal variables
+    float CurrentRotation;
+    float TargetRotation;
+    bool bIsRotatingRight;
+
+    // Phone sensor data
+    float GetDeviceTilt() const;
+
+    // Rotation handling
+    void UpdateRotation(float DeltaTime);
+
     EMeditationBlockState MeditationBlockState;
     /**
      * Updates the levitation position of the meditation block.

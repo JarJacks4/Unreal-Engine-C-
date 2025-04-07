@@ -2,6 +2,11 @@
 #include "Components/StaticMeshComponent.h"
 #include "Components/BoxComponent.h"
 #include "Components/MeditationComponent.h"
+#include "InputCoreTypes.h"
+#include "Input/Events.h"
+#include "Components/WidgetComponent.h"
+#include "Engine/GameViewportClient.h"
+#include "GenericPlatform/GenericPlatformMisc.h"
 #include "EscapeCharacter.h"
 
 AWellnessBlock::AWellnessBlock()
@@ -24,6 +29,9 @@ AWellnessBlock::AWellnessBlock()
     TriggerVolume->OnComponentEndOverlap.AddDynamic(this, &AWellnessBlock::OnOverlapEnd);
     // Initialize levitation offset
     LevitationOffset = 0.0f;
+    CurrentRotation = 0.0f;
+    TargetRotation = 0.0f;
+    bIsRotatingRight = true;
 }
 
 void AWellnessBlock::BeginPlay()
@@ -43,7 +51,10 @@ void AWellnessBlock::Tick(float DeltaTime)
     if (PlayerRef != nullptr) {
         UpdateLevitation(DeltaTime);
     }
+
 }
+
+
 
 void AWellnessBlock::OnOverlapBegin(UPrimitiveComponent* OverlappedComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
 {
