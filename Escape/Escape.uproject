@@ -74,5 +74,9 @@
 			"Name": "MetaHumanRuntime",
 			"Enabled": true
 		}
+	],
+	"TargetPlatforms": [
+		"Android",
+		"Windows"
 	]
 }
