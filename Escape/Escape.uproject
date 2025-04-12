@@ -73,6 +73,14 @@
 		{
 			"Name": "MetaHumanRuntime",
 			"Enabled": true
+		},
+		{
+			"Name": "HttpBlueprint",
+			"Enabled": true
+		},
+		{
+			"Name": "JWT",
+			"Enabled": true
 		}
 	]
 }
