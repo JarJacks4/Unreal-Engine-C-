@@ -1,5 +1,6 @@
 #include "GoogleCloudAPI.h"
 #include "Json.h"
+#include "Engine.h"
 #include "JsonObjectConverter.h"
 
 void UGoogleCloudAPI::CallGoogleCloudAPI(const FString& Endpoint, const FString& Method, const FString& Payload, const FString& ApiKey, const FOnGoogleCloudResponse& OnComplete)
@@ -7,7 +8,8 @@ void UGoogleCloudAPI::CallGoogleCloudAPI(const FString& Endpoint, const FString&
     TSharedRef<IHttpRequest, ESPMode::ThreadSafe> Request = FHttpModule::Get().CreateRequest();
 
     // Set the URL (base URL + endpoint)
-    FString URL = FString::Printf(TEXT("https://YOUR_GOOGLE_CLOUD_SERVICE.googleapis.com/%s"), *Endpoint);
+    GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Green, TEXT("Calling Google Cloud API..."));
+    FString URL = "https://escape-ujuzxr-334104837337.us-central1.run.app/" + Endpoint;
     Request->SetURL(URL);
 
     // Set the verb (GET, POST, etc)
