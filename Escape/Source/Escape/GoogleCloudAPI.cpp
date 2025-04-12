@@ -1,45 +1,112 @@
+// GoogleCloudAPI.cpp
 #include "GoogleCloudAPI.h"
-#include "Json.h"
-#include "Engine.h"
-#include "JsonObjectConverter.h"
 
-void UGoogleCloudAPI::CallGoogleCloudAPI(const FString& Endpoint, const FString& Method, const FString& Payload, const FString& ApiKey, const FOnGoogleCloudResponse& OnComplete)
+const FString UGoogleCloudAPI::ApiKey = "AIzaSyDeYSBzP8-2l1-o9L1kA0gO8v9xU9K7lUk";
+const FString UGoogleCloudAPI::ServerUrl = "https://escape-ujuzxr-334104837337.us-central1.run.app";
+
+void UGoogleCloudAPI::SendChatMessage(const FString& Message, const FString& SessionId,
+    const FOnChatResponseReceived& OnSuccess,
+    const FOnChatError& OnError)
 {
-    TSharedRef<IHttpRequest, ESPMode::ThreadSafe> Request = FHttpModule::Get().CreateRequest();
+    // Create HTTP request
+    TSharedRef<IHttpRequest, ESPMode::ThreadSafe> HttpRequest = FHttpModule::Get().CreateRequest();
+    HttpRequest->SetVerb("POST");
+    HttpRequest->SetURL(ServerUrl + "/chat");
+    HttpRequest->SetHeader("Content-Type", "application/json");
+    HttpRequest->SetHeader("Authorization", "Bearer " + ApiKey);
 
-    // Set the URL (base URL + endpoint)
-    GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Green, TEXT("Calling Google Cloud API..."));
-    FString URL = "https://escape-ujuzxr-334104837337.us-central1.run.app/" + Endpoint;
-    Request->SetURL(URL);
+    // Create request body
+    TSharedPtr<FJsonObject> JsonObject = MakeShareable(new FJsonObject);
+    JsonObject->SetStringField("message", Message);
+    JsonObject->SetStringField("session_id", SessionId);
 
-    // Set the verb (GET, POST, etc)
-    Request->SetVerb(Method);
+    FString RequestBodyString;
+    TSharedRef<TJsonWriter<>> Writer = TJsonWriterFactory<>::Create(&RequestBodyString);
+    FJsonSerializer::Serialize(JsonObject.ToSharedRef(), Writer);
 
-    // Set headers
-    Request->SetHeader(TEXT("Content-Type"), TEXT("application/json"));
-    Request->SetHeader(TEXT("Authorization"), FString::Printf(TEXT("Bearer %s"), *ApiKey));
+    HttpRequest->SetContentAsString(RequestBodyString);
 
-    // Set content if it's a POST or PUT request
-    if (!Payload.IsEmpty())
-    {
-        Request->SetContentAsString(Payload);
-    }
+    // Set completion callback
+    HttpRequest->OnProcessRequestComplete().BindLambda([OnSuccess, OnError](FHttpRequestPtr Request, FHttpResponsePtr Response, bool bWasSuccessful)
+        {
+            if (!bWasSuccessful || !Response.IsValid())
+            {
+                OnError.ExecuteIfBound("Failed to connect to server");
+                return;
+            }
 
-    // Set the callback for when the request completes
-    Request->OnProcessRequestComplete().BindStatic(&UGoogleCloudAPI::HandleResponse, OnComplete);
+            if (Response->GetResponseCode() != 200)
+            {
+                OnError.ExecuteIfBound(FString::Printf(TEXT("Server returned error code: %d"), Response->GetResponseCode()));
+                return;
+            }
 
-    // Submit the request
-    Request->ProcessRequest();
+            // Parse the response
+            TSharedPtr<FJsonObject> JsonObject;
+            TSharedRef<TJsonReader<>> Reader = TJsonReaderFactory<>::Create(Response->GetContentAsString());
+            if (!FJsonSerializer::Deserialize(Reader, JsonObject) || !JsonObject.IsValid())
+            {
+                OnError.ExecuteIfBound("Failed to parse response");
+                return;
+            }
+
+            // Create the response struct
+            FChatResponse ChatResponse;
+            ChatResponse.SessionId = JsonObject->GetStringField("session_id");
+            ChatResponse.Response = JsonObject->GetStringField("response");
+
+            // Parse conversation array
+            TArray<TSharedPtr<FJsonValue>> ConversationArray = JsonObject->GetArrayField("conversation");
+            for (const TSharedPtr<FJsonValue>& Value : ConversationArray)
+            {
+                ChatResponse.Conversation.Add(Value->AsString());
+            }
+
+            OnSuccess.ExecuteIfBound(ChatResponse);
+        });
+
+    // Send request
+    HttpRequest->ProcessRequest();
 }
 
-void UGoogleCloudAPI::HandleResponse(FHttpRequestPtr Request, FHttpResponsePtr Response, bool bConnectedSuccessfully, FOnGoogleCloudResponse OnComplete)
+void UGoogleCloudAPI::CreateChatSession(const FOnSessionCreated& OnSuccess,
+    const FOnChatError& OnError)
 {
-    if (bConnectedSuccessfully && Response.IsValid())
-    {
-        OnComplete.ExecuteIfBound(true, Response->GetContentAsString());
-    }
-    else
-    {
-        OnComplete.ExecuteIfBound(false, TEXT("Request failed"));
-    }
+    // Create HTTP request
+    TSharedRef<IHttpRequest, ESPMode::ThreadSafe> HttpRequest = FHttpModule::Get().CreateRequest();
+    HttpRequest->SetVerb("GET");
+    HttpRequest->SetURL(ServerUrl + "/");
+    HttpRequest->SetHeader("Authorization", "Bearer " + ApiKey);
+
+    // Set completion callback
+    HttpRequest->OnProcessRequestComplete().BindLambda([OnSuccess, OnError](FHttpRequestPtr Request, FHttpResponsePtr Response, bool bWasSuccessful)
+        {
+            if (!bWasSuccessful || !Response.IsValid())
+            {
+                OnError.ExecuteIfBound("Failed to connect to server");
+                return;
+            }
+
+            if (Response->GetResponseCode() != 200)
+            {
+                OnError.ExecuteIfBound(FString::Printf(TEXT("Server returned error code: %d"), Response->GetResponseCode()));
+                return;
+            }
+
+            // Parse the response
+            TSharedPtr<FJsonObject> JsonObject;
+            TSharedRef<TJsonReader<>> Reader = TJsonReaderFactory<>::Create(Response->GetContentAsString());
+            if (!FJsonSerializer::Deserialize(Reader, JsonObject) || !JsonObject.IsValid())
+            {
+                OnError.ExecuteIfBound("Failed to parse response");
+                return;
+            }
+
+            // Extract session ID
+            FString SessionId = JsonObject->GetStringField("session_id");
+            OnSuccess.ExecuteIfBound(SessionId);
+        });
+
+    // Send request
+    HttpRequest->ProcessRequest();
 }
