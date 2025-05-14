@@ -7,15 +7,18 @@
 #include "WellnessSaveGame.generated.h"
 
 /**
- * Save game class for storing wellness-related data, specifically the last gratitude prompt time.
+ *  UWellnessSaveGame
+ * A SaveGame object specifically designed to store data related to the player's wellness activities and progress.
  */
 UCLASS()
 class ESCAPE_API UWellnessSaveGame : public USaveGame
 {
-	GENERATED_BODY()
+    GENERATED_BODY()
+
 public:
-    // Last time the gratitude prompt was displayed
-    // Exposed to the Editor and serialization system
-    UPROPERTY()
+    UPROPERTY(VisibleAnywhere, Category = "Wellness Data")
     FDateTime LastGratitudePromptTime;
+
+    UPROPERTY(VisibleAnywhere, Category = "Wellness Data")
+    float AggregatedScore = 0.0f;
 };

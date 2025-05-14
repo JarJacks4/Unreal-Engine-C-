@@ -1,120 +1,117 @@
 #pragma once
+
 #include "CoreMinimal.h"
-#include "Subsystems/GameInstanceSubsystem.h"   
+#include "Components/ActorComponent.h"
+#include "Sound/SoundBase.h"
 #include "WellnessComponent.generated.h"
 
+// Forward declarations
+class UMessageWidget;
+class UWellnessSaveGame;
+class UTextBlock;
 
+/**
+ *  Structure to hold data for a single wellness message (Affirmation, Gratitude, Hydration).
+ */
 USTRUCT(BlueprintType)
 struct ESCAPE_API FMessage
 {
     GENERATED_USTRUCT_BODY()
+
 public:
-    // Text of the affirmation
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Wellness Message")
     FText Text;
 
-
-    // Optional voice clip for the affirmation
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Wellness Message")
-    USoundBase* VoiceClip;
+    TObjectPtr<USoundBase> VoiceClip;
 };
 
-
-class UMessageWidget;
-class UWellnessSaveGame;
-
 /**
- * Subsystem responsible for managing periodic wellness prompts, such as hydration reminders and gratitude reflection.
- * Attached to the game instance to ensure it runs throughout the player's session.
+ *  UWellnessComponent
+ * An ActorComponent responsible for managing periodic wellness prompts displayed to the player.
+ * It handles scheduling and displaying hydration reminders, gratitude prompts, and affirmations
+ * using a UMessageWidget. It uses timers to control the frequency and duration of these messages.
+ * It also interacts with UWellnessSaveGame to persist the timestamp of the last gratitude prompt shown.
+ *
+ * This component should be added to the player character Actor (e.g., AEscapeCharacter).
  */
-UCLASS()
+UCLASS(ClassGroup = (Custom), meta = (BlueprintSpawnableComponent))
 class ESCAPE_API UWellnessComponent : public UActorComponent
 {
-	GENERATED_BODY()
+    GENERATED_BODY()
 
 public:
+    UWellnessComponent();
 
-    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Wellness Message")
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Wellness Message|Content")
     TArray<FMessage> Affirmations;
 
-    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Wellness Message")
-    FText GratitudeFT = FText::FromString("Insert the Gratitude prompt here");
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Wellness Message|Content", meta = (MultiLine = true))
+    FText GratitudeFT = FText::FromString(TEXT("Take a moment to think about something you are grateful for today."));
 
-    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Wellness Message")
-    FText HydrationReminderFT = FText::FromString("Insert the Hydration Reminder here");
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Wellness Message|Content", meta = (MultiLine = true))
+    FText HydrationReminderFT = FText::FromString(TEXT("Remember to stay hydrated! Drink some water."));
 
-    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Wellness Message")
+    UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Wellness Message|Setup")
     TSubclassOf<UMessageWidget> MessageWidgetClass;
 
-    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Wellness Message")
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Wellness Message|Options")
     bool bEnableAffirmationVoice = false;
 
-    /**
-     * Called when the game starts, setting up timers for hydration, affirmations and gratitude prompts.
-     * Loads or creates the save game object for persistence.
-     */
-    virtual void BeginPlay() override;
-
-
-    // Interval for hydration reminders in seconds (5 minutes)
-    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Wellness Message")
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Wellness Message|Timing", meta = (ClampMin = "10.0", UIMin = "10.0"))
     float HydrationInterval = 300.0f;
 
-    // Interval for gratitude prompts in seconds (4 hours)
-    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Wellness Message")
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Wellness Message|Timing", meta = (ClampMin = "60.0", UIMin = "60.0"))
     float GratitudeInterval = 14400.0f;
 
-
-    // Interval for affirmations in seconds (5 minutes)
-    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Wellness Message")
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Wellness Message|Timing", meta = (ClampMin = "10.0", UIMin = "10.0"))
     float AffirmationInterval = 300.0f;
 
-    /**
-     * Displays the hydration reminder Text.
-     */
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Wellness Message|Timing", meta = (ClampMin = "1.0", UIMin = "1.0"))
+    float MessageDisplayDuration = 10.0f;
+
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Save Game")
+    FString WellnessSaveSlotName = TEXT("WellnessRemindersSave");
+
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Save Game")
+    int32 WellnessUserIndex = 0;
+
+    UFUNCTION()
     void ShowHydrationReminder();
 
-    /**
-     * Displays the affirmations.
-     */
+    UFUNCTION(BlueprintCallable)
     void ShowAffirmationReminder();
 
-    /**
-     * Displays the gratitude promp and updates the last prompt time.
-     */
+    UFUNCTION(BlueprintCallable)
     void ShowGratitudePrompt();
 
+protected:
+    virtual void BeginPlay() override;
+
+    virtual void EndPlay(const EEndPlayReason::Type EndPlayReason) override;
+
 private:
+    UPROPERTY(Transient)
+    TObjectPtr<UMessageWidget> MessageWidget;
 
-    UMessageWidget* MessageWidget;
-
-    // Timer handle for the hydration UI removal
-    FTimerHandle HydrationRemovalTimerHandle;
-
-    // Timer handle for the Gratitude UI removal
-    FTimerHandle GratitudeRemovalTimerHandle;
-
-    // Timer handle for the affirmation UI removal
-    FTimerHandle AffirmationRemovalTimerHandle;
-
-
-    // Timer handle for hydration reminders
     FTimerHandle HydrationTimerHandle;
-
-    // Currently displayed hydration widget (if any)
     FTimerHandle GratitudeTimerHandle;
-
-
-    // Timer handle for hydration reminders
     FTimerHandle AffirmationTimerHandle;
 
+    FTimerHandle HydrationRemovalTimerHandle;
+    FTimerHandle GratitudeRemovalTimerHandle;
+    FTimerHandle AffirmationRemovalTimerHandle;
 
-    // Save game object for persisting gratitude prompt timing
-    UWellnessSaveGame* SaveGameInstance;
+    UPROPERTY(Transient)
+    TObjectPtr<UWellnessSaveGame> SaveGameInstance;
 
-    // Last time the gratitude prompt was shown
     FDateTime LastGratitudePromptTime;
 
-   
-	
+    void LoadOrCreateSaveGame();
+
+    void SaveWellnessData();
+
+    void ClearAllTimers();
+
+    void DisplayMessageAndScheduleRemoval(UTextBlock* TargetTextBlock, const FText& TextToShow, FTimerHandle& RemovalTimerHandle, USoundBase* OptionalSound = nullptr);
 };

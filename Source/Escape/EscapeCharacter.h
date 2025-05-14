@@ -19,199 +19,182 @@ class UInputAction;
 struct FInputActionValue;
 class UMeditationComponent;
 class UStretchingComponent;
+class UDeepBreathingComponent;
+class UWellnessComponent;
+class UJournalingComponent;
 class UInteractionWidget;
 class UMessageWidget;
 
 /**
- * Enum representing the possible states of the meditation mechanic.
+ * Enum representing the possible states of the character related to wellness activities.
  */
 UENUM(BlueprintType)
 enum class EMinuteGoalActionsState : uint8
 {
-	Idle        UMETA(DisplayName = "Idle"),        // Not realizing NY minute actions
-	Meditating  UMETA(DisplayName = "Meditating"),  // Actively meditating
-	DeepBreathing  UMETA(DisplayName = "Deep Breathing"),  // Actively deepbreathing
-	Stretching  UMETA(DisplayName = "Stretching")   // Actively stretching
+	Idle UMETA(DisplayName = "Idle"),
+	Meditating UMETA(DisplayName = "Meditating"),
+	DeepBreathing UMETA(DisplayName = "Deep Breathing"),
+	Stretching UMETA(DisplayName = "Stretching"),
+	Journaling UMETA(DisplayName = "Journaling")
 };
 
-
-UCLASS(config=Game)
-class AEscapeCharacter : public ACharacter
+/**
+ * The main player character class for the Escape game.
+ */
+UCLASS(config = Game)
+class ESCAPE_API AEscapeCharacter : public ACharacter
 {
 	GENERATED_BODY()
 
-
-	/** Camera boom positioning the camera behind the character */
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Camera, meta = (AllowPrivateAccess = "true"))
-	USpringArmComponent* CameraBoom;
+	TObjectPtr<USpringArmComponent> CameraBoom;
 
-	/** Follow camera */
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Camera, meta = (AllowPrivateAccess = "true"))
-	UCameraComponent* FollowCamera;
+	TObjectPtr<UCameraComponent> FollowCamera;
 
-	/** MappingContext */
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
-	UInputMappingContext* DefaultMappingContext;
+	TObjectPtr<UInputMappingContext> DefaultMappingContext;
 
-	/** Jump Input Action */
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
-	UInputAction* JumpAction;
+	TObjectPtr<UInputAction> JumpAction;
 
-	/** Move Input Action */
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
-	UInputAction* MoveAction;
+	TObjectPtr<UInputAction> MoveAction;
 
-	/** Look Input Action */
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
-	UInputAction* LookAction;
+	TObjectPtr<UInputAction> LookAction;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Input", meta = (AllowPrivateAccess = "true"))
+	TObjectPtr<UInputMappingContext> InputMapping;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Input", meta = (AllowPrivateAccess = "true"))
+	TObjectPtr<UInputAction> LeftAction;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Input", meta = (AllowPrivateAccess = "true"))
+	TObjectPtr<UInputAction> RightAction;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Input", meta = (AllowPrivateAccess = "true"))
+	TObjectPtr<UInputAction> UpAction;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Input", meta = (AllowPrivateAccess = "true"))
+	TObjectPtr<UInputAction> DownAction;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Input", meta = (AllowPrivateAccess = "true"))
+	TObjectPtr<UInputAction> MinuteGoalActions;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Input", meta = (AllowPrivateAccess = "true"))
+	TObjectPtr<UInputAction> MeditationTilt;
 
 public:
 	AEscapeCharacter();
 
-	/**
-	 * Called every frame to update character logic, including wellness activities.
-	 */
 	virtual void Tick(float DeltaTime) override;
-	/**
-	 * Called when the character is created
-	*/
+
 	virtual void BeginPlay() override;
 
-	/**
-	 * Starts the specified wellness activity (meditation,deep breathing or stretching).
-	 */
-	UFUNCTION(BlueprintCallable)
+	UFUNCTION(BlueprintCallable, Category = "Wellness")
 	void Activity();
 
-	UFUNCTION(BlueprintCallable, Category = "Minute Goal Actions")
-	EMinuteGoalActionsState GetMinuteGoalActionsState() { return MinuteGoalActionsState; }
+	UFUNCTION(BlueprintCallable, BlueprintPure, Category = "Character State")
+	float GetPlayerDeltaTime() const { return DeltaTimePlayer; }
 
-	UFUNCTION(BlueprintCallable, Category = "Minute Goal Actions")
-	EMinuteGoalActionsState SetMinuteGoalActionState(EMinuteGoalActionsState NMinuteGoalActionsState ) { return MinuteGoalActionsState = NMinuteGoalActionsState; }
+	UFUNCTION(BlueprintCallable, Category = "Character State")
+	void SetPlayerDeltaTime(float delta) { DeltaTimePlayer = delta; }
 
-	UFUNCTION(BlueprintCallable, Category = "Wellness Block")
-	EWellnessBlockType SetWellnessBlockType(EWellnessBlockType BlockType) { return BlockTypePlayer = BlockType; }
+	UFUNCTION(BlueprintCallable, BlueprintPure, Category = "Character State|Input")
+	float GetTilt() const { return TiltInput; }
 
-	UFUNCTION(BlueprintCallable, Category = "Wellness Block")
-	EWellnessBlockType GetBlockType() { return BlockTypePlayer; }
+	UFUNCTION(BlueprintCallable, Category = "Character State|Input")
+	void SetTilt(float Tilt) { TiltInput = Tilt; }
 
-	UFUNCTION(BlueprintCallable)
-	UActivityUIWidget* GetActivityUIWidget() { return ActivityUIWidget; }
+	UFUNCTION(BlueprintCallable, BlueprintPure, Category = "Character State|Wellness")
+	EMinuteGoalActionsState GetMinuteGoalActionsState() const { return MinuteGoalActionsState; }
 
-	UFUNCTION(BlueprintCallable)
+	UFUNCTION(BlueprintCallable, Category = "Character State|Wellness")
+	void SetMinuteGoalActionState(EMinuteGoalActionsState NMinuteGoalActionsState) { MinuteGoalActionsState = NMinuteGoalActionsState; }
+
+	UFUNCTION(BlueprintCallable, BlueprintPure, Category = "Character State|Wellness")
+	EWellnessBlockType GetBlockType() const { return BlockType; }
+
+	UFUNCTION(BlueprintCallable, Category = "Character State|Wellness")
+	void SetBlockType(EWellnessBlockType NewBlockType) { BlockType = NewBlockType; }
+
+	UFUNCTION(BlueprintCallable, BlueprintPure, Category = "UI")
+	UActivityUIWidget* GetActivityUIWidget() const { return ActivityUIWidget.Get(); }
+
+	UFUNCTION(BlueprintCallable, Category = "UI")
 	void SetActivityUIWidget(UActivityUIWidget* ActivityP) { ActivityUIWidget = ActivityP; }
 
-	UFUNCTION(BlueprintCallable)
-	UMobileUIWidget* GetMobileUIWidget() { return MobileUIWidget; }
+	UFUNCTION(BlueprintCallable, BlueprintPure, Category = "UI")
+	UMobileUIWidget* GetMobileUIWidget() const { return MobileUIWidget.Get(); }
 
-	UFUNCTION(BlueprintCallable)
-	void SetMobileUIWidget(UMobileUIWidget* MobileP) { MobileUIWidget =  MobileP; }
+	UFUNCTION(BlueprintCallable, Category = "UI")
+	void SetMobileUIWidget(UMobileUIWidget* MobileP) { MobileUIWidget = MobileP; }
 
+	UPROPERTY(BlueprintReadOnly, Category = "Wellness|Score")
+	float AggregatedScore = 0.0f;
 
-	/**
-	 * Meditation component responsible for handling the meditation mechanic.
-	 * Exposed to Blueprints for easy access and configuration.
-	 */
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components")
-	UMeditationComponent* MeditationComponent;
-
-	/**
-	 * Input action specifically for triggering the activity mechanics.
-	 * Bound to start/stop activity functions via Enhanced Input.
-	 * Assigned in the Editor or Blueprint.
-	 */
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Input")
-	TObjectPtr<class UInputAction> MinuteGoalActions;
-
-	/**
-	* Stretching component responsible for handling the Stretching mechanic.
-	* Exposed to Blueprints for easy access and configuration.
-	*/
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components")
-	TObjectPtr <class UStretchingComponent> StretchingComponent;
-
-	/**
-	* Stretching component responsible for handling the Meditation Timer.
-	* Exposed to Blueprints for easy access and configuration.
-	*/
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components")
-	TObjectPtr <class USecondCounterComponent> SecondCounterMeditation;
-	
-	/**
-	* Stretching component responsible for handling the Stretching timer.
-	* Exposed to Blueprints for easy access and configuration.
-	*/
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components")
-	TObjectPtr <class USecondCounterComponent> SecondCounterStretching;
-
-	/**
-	* Stretching component responsible for handling the Deep Breathing timer.
-	* Exposed to Blueprints for easy access and configuration.
-	*/
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components")
-	TObjectPtr <class USecondCounterComponent> SecondCounterBreathing;
-
-	/**
-	* Deep Breathing component responsible for handling the deep breathing mechanic.
-	* Exposed to Blueprints for easy access and configuration.
-	*/
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components")
-	TObjectPtr<class UDeepBreathingComponent> DeepBreathingComponent;
-
-	/**
-	* Deep Breathing component responsible for handling the wellness messages.
-	* Exposed to Blueprints for easy access and configuration.
-	*/
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components")
-	TObjectPtr<class UWellnessComponent> WellnessComponent;
-
+	UPROPERTY(VisibleInstanceOnly, BlueprintReadOnly, Category = "Character State|Interaction")
 	bool bIsInBlock = false;
 
-	// Class of the affirmation widget to create
-	// Must be assigned in the Editor's details panel
-	UPROPERTY(EditAnywhere)
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Components|Wellness", meta = (AllowPrivateAccess = "true"))
+	TObjectPtr<UMeditationComponent> MeditationComponent;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Components|Wellness", meta = (AllowPrivateAccess = "true"))
+	TObjectPtr<UStretchingComponent> StretchingComponent;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Components|Wellness", meta = (AllowPrivateAccess = "true"))
+	TObjectPtr<UDeepBreathingComponent> DeepBreathingComponent;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Components|Wellness", meta = (AllowPrivateAccess = "true"))
+	TObjectPtr<UWellnessComponent> WellnessComponent;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Components|Wellness", meta = (AllowPrivateAccess = "true"))
+	TObjectPtr<UJournalingComponent> JournalingComponent;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Components|Timers", meta = (AllowPrivateAccess = "true"))
+	TObjectPtr<USecondCounterComponent> SecondCounterComponent;
+
+	UPROPERTY(EditDefaultsOnly, Category = "UI")
 	TSubclassOf<UMobileUIWidget> MobileUIWidgetClass;
 
-	UPROPERTY(EditAnywhere)
+	UPROPERTY(EditDefaultsOnly, Category = "UI")
 	TSubclassOf<UActivityUIWidget> ActivityUIWidgetClass;
 
-private:
-	EWellnessBlockType BlockTypePlayer;
-	EMinuteGoalActionsState MinuteGoalActionsState;
-	TArray<AActor*> WellnessBlc;
-
-
-
-	// Currently displayed affirmation widget
-	UMobileUIWidget* MobileUIWidget;
-
-
-	// Currently displayed affirmation widget
-	UActivityUIWidget* ActivityUIWidget;
-
-
 protected:
-	//**Function called to start jumping */
-	void Jump();
-	//** Function called to stop jumping */
-	void StopJumping();
-	/** Called for movement input */
+	virtual void Jump() override;
+	virtual void StopJumping() override;
+
 	void Move(const FInputActionValue& Value);
 
-	/** Called for looking input */
 	void Look(const FInputActionValue& Value);
-			
 
-protected:
+	void HandleLeftInput(const FInputActionValue& Value);
+	void HandleRightInput(const FInputActionValue& Value);
+	void HandleUpInput(const FInputActionValue& Value);
+	void HandleDownInput(const FInputActionValue& Value);
+	void HandleTiltInput(const FInputActionValue& Value);
 
 	virtual void NotifyControllerChanged() override;
 
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
 
-public:
-	/** Returns CameraBoom subobject **/
-	FORCEINLINE class USpringArmComponent* GetCameraBoom() const { return CameraBoom; }
-	/** Returns FollowCamera subobject **/
-	FORCEINLINE class UCameraComponent* GetFollowCamera() const { return FollowCamera; }
-};
+private:
+	EMinuteGoalActionsState MinuteGoalActionsState = EMinuteGoalActionsState::Idle;
+	float DeltaTimePlayer = 0.0f;
+	float TiltInput = 0.0f;
+	EWellnessBlockType BlockType = EWellnessBlockType::None;
 
+	UPROPERTY(Transient)
+	TObjectPtr<UMobileUIWidget> MobileUIWidget;
+
+	UPROPERTY(Transient)
+	TObjectPtr<UActivityUIWidget> ActivityUIWidget;
+
+public:
+	FORCEINLINE USpringArmComponent* GetCameraBoom() const { return CameraBoom.Get(); }
+	FORCEINLINE UCameraComponent* GetFollowCamera() const { return FollowCamera.Get(); }
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Debug")
+	bool OnScreenDebugBool = true;
+};
