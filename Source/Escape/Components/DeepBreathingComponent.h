@@ -106,17 +106,9 @@ public:
    UFUNCTION(BlueprintCallable, BlueprintPure, Category = "Deep Breathing")
    float GetDeepBreathingDuration() const { return DeepBreathingDuration; }
    
-   /**
-    *  Gets the current deep breathing timer value (time elapsed since exercise started).
-    *  @return The elapsed time in seconds
-    */
-   UFUNCTION(BlueprintCallable, BlueprintPure, Category = "Deep Breathing")
-   float GetDeepBreathingTimer() const { return DeepBreathingTimer; }
+
    
-   /**
-    *  Clears the deep breathing timer, resetting elapsed time to zero.
-    *  Useful when stopping the exercise prematurely.
-    */
+
    UFUNCTION(BlueprintCallable, Category = "Deep Breathing")
    void ClearDeepBreathingTimer();
    
@@ -132,13 +124,58 @@ public:
    /** Gets the BreathingBubbleWidget reference. */
    UBreathingBubbleWidget* GetBreathingBubbleWidget() const { return BreathingBubbleWidget; }
 
-   /** Default completion points, can be overridden by specific breathing types. */
-   UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Scoring", meta = (ToolTip = "Default points awarded for completing the duration. Specific types might override this."))
-   int32 DefaultCompletionPoints = 3; // Default points for Deep Breathing
+   /** Completion and minimum points for Deep Breathing */
+   UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Scoring", meta = (ClampMin = "1", UIMin = "1"))
+   int32 CompletionPoints_Deep = 3;
+   UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Scoring", meta = (ClampMin = "1", UIMin = "1"))
+   int32 MinimumPoints_Deep = 1;
+
+   /** Completion and minimum points for Basic Breathing */
+   UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Scoring", meta = (ClampMin = "1", UIMin = "1"))
+   int32 CompletionPoints_Basic = 10;
+   UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Scoring", meta = (ClampMin = "1", UIMin = "1"))
+   int32 MinimumPoints_Basic = 1;
+
+   /** Completion and minimum points for Box Breathing */
+   UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Scoring", meta = (ClampMin = "1", UIMin = "1"))
+   int32 CompletionPoints_Box = 5;
+   UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Scoring", meta = (ClampMin = "1", UIMin = "1"))
+   int32 MinimumPoints_Box = 1;
+
+   /** Completion and minimum points for 4-7-8 Breathing */
+   UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Scoring", meta = (ClampMin = "1", UIMin = "1"))
+   int32 CompletionPoints_478 = 7;
+   UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Scoring", meta = (ClampMin = "1", UIMin = "1"))
+   int32 MinimumPoints_478 = 1;
+
+   /** Detraction points for Deep Breathing */
+   UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Scoring", meta = (ClampMin = "0", UIMin = "0"))
+   int32 DetractionPoints_Deep = 0;
+   /** Detraction points for Basic Breathing */
+   UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Scoring", meta = (ClampMin = "0", UIMin = "0"))
+   int32 DetractionPoints_Basic = 0;
+   /** Detraction points for Box Breathing */
+   UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Scoring", meta = (ClampMin = "0", UIMin = "0"))
+   int32 DetractionPoints_Box = 0;
+   /** Detraction points for 4-7-8 Breathing */
+   UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Scoring", meta = (ClampMin = "0", UIMin = "0"))
+   int32 DetractionPoints_478 = 0;
 
    /** The specific type of breathing exercise to perform. */
    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Deep Breathing")
    EBreathingType BreathingType = EBreathingType::Deep; // Default to general Deep Breathing
+
+   /** Duration of deep breathing exercise in seconds. Set to 0 for toggle mode (no timer). */
+   UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Deep Breathing", meta = (ClampMin = "0.0", UIMin = "0.0", ToolTip = "Default duration in seconds. Specific types might override this."))
+   float DeepBreathingDuration = 300.0f; // 5 minutes for Deep Breathing
+
+   /** The current scale of the breathing bubble (0.5 to 1.5). */
+   UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Deep Breathing", meta = (ClampMin = "0.1", UIMin = "0.1"))
+   float BubbleScale = 1.5f;
+
+   /** Scaling direction (1 for expanding, -1 for shrinking). */
+   UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Deep Breathing", meta = (ClampMin = "-1.0", UIMin = "-1.0"))
+   float ScaleDirection = -1.0f;
 
 private:
    /**  Audio component for playing and stopping Deep Breathing music. */
@@ -154,24 +191,6 @@ private:
     */
    void UpdateBreathingBubble(float DeltaTime);
 
-   /**  The current scale of the breathing bubble (0.5 to 1.5). */
-   float BubbleScale;
-
-   /**  Scaling direction (1 for expanding, -1 for shrinking). */
-   float ScaleDirection;
-   
-   /**
-    *  Duration of deep breathing exercise in seconds. Set to 0 for toggle mode (no timer).
-    * If > 0, the exercise will automatically stop after this time.
-    * If = 0, the exercise will continue until stopped manually.
-    * Default is 300 seconds (5 minutes) as specified in deep breathing documentation.
-    */
-   UPROPERTY(EditAnywhere, Category = "Deep Breathing", meta = (ClampMin = "0.0", UIMin = "0.0", ToolTip = "Default duration in seconds. Specific types might override this."))
-   float DeepBreathingDuration = 300.0f; // 5 minutes for Deep Breathing
-
-   /**  Timer tracking progress (unused in toggle mode). */
-   UPROPERTY(VisibleInstanceOnly, Category = "Deep Breathing", Transient)
-   float DeepBreathingTimer = 0.0f;
 
    /**  Handle for the deep breathing timer (used when DeepBreathingDuration > 0). */
    FTimerHandle DeepBreathingTimerHandle;
@@ -188,8 +207,8 @@ private:
     */
    void ApplyDeepBreathingEffects();
 
-   /**  Cached reference to the owning character for efficient access. */
-   TWeakObjectPtr<ACharacter> OwningCharacter;
+
+
    /**  Cached reference to the owning EscapeCharacter for efficient access. */
    AEscapeCharacter* CachedEscapeCharacter = nullptr;
 

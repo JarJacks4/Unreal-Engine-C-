@@ -7,13 +7,14 @@
 #include "Components/Button.h" // For UButton
 #include "ScoreWidget.h" // For UScoreWidget
 #include "BreathingBubbleWidget.h" // For UBreathingBubbleWidget
+#include "TimerWidget.h" // Add include for TimerWidget
 #include "ActivityUIWidget.generated.h"
 
 /**
  *  UActivityUIWidget
  * A container widget that holds and manages the UI elements specific to the active wellness activity.
  * This includes the score display (UScoreWidget), the deep breathing bubble (UBreathingBubbleWidget),
- * the tap button for deep breathing, and the target bubble visual for deep breathing.
+ * the tap button for deep breathing, the target bubble visual for deep breathing, and the timer display (UTimerWidget).
  * It provides accessors for these child widgets so the character and activity components can interact with them.
  *
  * This widget is typically created and managed by the AEscapeCharacter and made visible/hidden
@@ -41,6 +42,8 @@ public:
 	UFUNCTION(BlueprintCallable, BlueprintPure, Category = "Activity UI|Access") // Added category and BlueprintPure
 	UScoreWidget* GetScoreWidget() const { return ScoreWidget; }; // Added const
 
+
+	
 	/**
 	 *  Sets the reference to the UBreathingBubbleWidget instance used for the deep breathing activity.
 	 *  DeepBreathin Pointer to the UBreathingBubbleWidget instance.
@@ -83,6 +86,20 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "Activity UI|Setup") // Added category
 	void SetTargetBubble(UImage* TargetBubbleP) { TargetBubble = TargetBubbleP; };
 
+	/**
+	 *  Sets the reference to the UTimerWidget instance used for displaying the timer.
+	 *  TimerWidgetP Pointer to the UTimerWidget instance.
+	 */
+	UFUNCTION(BlueprintCallable, Category = "Activity UI|Setup")
+	void SetTimerWidget(UTimerWidget* TimerWidgetP) { TimerWidget = TimerWidgetP; };
+
+	/**
+	 *  Gets the reference to the UTimerWidget instance used for displaying the timer.
+	 * @return Pointer to the UTimerWidget, or nullptr if not set.
+	 */
+	UFUNCTION(BlueprintCallable, BlueprintPure, Category = "Activity UI|Access")
+	UTimerWidget* GetTimerWidget() const { return TimerWidget; };
+
 private:
 	/**
 	 *  Pointer to the child UBreathingBubbleWidget instance.
@@ -111,4 +128,11 @@ private:
 	 */
 	UPROPERTY(meta = (BindWidgetOptional))
 	TObjectPtr<UImage> TargetBubble;
+
+	/**
+	 *  Pointer to the child UTimerWidget instance.
+	 * Should be assigned either via `meta = (BindWidget)` or manually via `SetTimerWidget`.
+	 */
+	UPROPERTY(meta = (BindWidgetOptional))
+	TObjectPtr<UTimerWidget> TimerWidget;
 };

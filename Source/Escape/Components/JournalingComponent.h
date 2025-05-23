@@ -35,8 +35,16 @@ public:
 	float JournalingDuration = 600.0f;
 
 	/** Points awarded for completing the journaling activity. */
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Scoring")
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Scoring", meta = (ClampMin = "1", UIMin = "1"))
 	int32 CompletionPoints = 5;
+
+	/** Minimum points awarded for this activity. */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Scoring", meta = (ClampMin = "1", UIMin = "1"))
+	int32 MinimumPoints = 1;
+
+	/** Detraction points for journaling activity. */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Scoring", meta = (ClampMin = "0", UIMin = "0"))
+	int32 DetractionPoints = 0;
 
 protected:
 	// Called when the game starts

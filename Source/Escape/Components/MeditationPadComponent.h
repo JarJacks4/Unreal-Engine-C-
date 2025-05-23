@@ -84,8 +84,29 @@ public:
     UFUNCTION(BlueprintCallable, BlueprintPure, Category = "MeditationPad") // Changed category
     bool IsMeditationTimerActive() const; // Changed function name
 
-    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Scoring")
-    int32 CompletionPoints = 10; // Kept scoring variable
+    /** Duration of meditation pad interaction in seconds. Set to 0 for toggle mode (no timer). */
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "MeditationPad", meta = (ClampMin = "0.0", UIMin = "0.0"))
+    float InteractionDuration = 300.0f;
+
+    /** Points awarded for completing the meditation pad activity. */
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Scoring", meta = (ClampMin = "1", UIMin = "1"))
+    int32 CompletionPoints = 3;
+
+    /** Minimum points awarded for this activity. */
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Scoring", meta = (ClampMin = "1", UIMin = "1"))
+    int32 MinimumPoints = 1;
+
+    /** Detraction points for meditation pad activity. */
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Scoring", meta = (ClampMin = "0", UIMin = "0"))
+    int32 DetractionPoints_MeditationPad = 0;
+
+    /**
+     *  Duration of interaction in seconds. Set to 0 for toggle mode (no timer).
+     * If > 0, the interaction will automatically stop after this time.
+     * If = 0, interaction will continue until stopped manually.
+     */
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "MeditationPad", meta = (ClampMin = "0.0", UIMin = "0.0")) // Changed category
+        float MeditationDuration = 10.0f; // Changed variable name
 
 protected:
     /**
@@ -100,13 +121,7 @@ private:
     TObjectPtr<AWellnessBlock> BlockRef; // Reference to the block for interaction
 
 
-    /**
-     *  Duration of interaction in seconds. Set to 0 for toggle mode (no timer).
-     * If > 0, the interaction will automatically stop after this time.
-     * If = 0, interaction will continue until stopped manually.
-     */
-    UPROPERTY(EditAnywhere, Category = "MeditationPad", meta = (ClampMin = "0.0", UIMin = "0.0")) // Changed category
-    float MeditationDuration = 10.0f; // Changed variable name
+    
 
     /**
      *  The SoundCue asset to play during the interaction exercise.

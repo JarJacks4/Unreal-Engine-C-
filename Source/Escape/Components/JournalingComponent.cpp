@@ -26,6 +26,7 @@ void UJournalingComponent::StartJournaling()
     CachedEscapeCharacter->SetMinuteGoalActionState(EMinuteGoalActionsState::Journaling);
     SecondCounterComponent->CompletionPoints = CompletionPoints;
     SecondCounterComponent->TargetTime = JournalingDuration;
+    // You can use MinimumPoints in your logic as needed
     SecondCounterComponent->ResetCounter();
     SecondCounterComponent->StartCounter();
 }

@@ -2,13 +2,13 @@
 
 #include "CoreMinimal.h"
 #include "Components/ActorComponent.h"
-#include "SecondCounterComponent.generated.h" 
+#include "../Widgets/TimerWidget.h" 
+#include "SecondCounterComponent.generated.h"
 
 
 class UScoreWidget;
-class ACharacter;
+class AEscapeCharacter;
 class UHighScoreSaveGame;
-
 
 /**
  *  USecondCounterComponent
@@ -65,7 +65,7 @@ public:
      *  Returns the current elapsed time tracked by the counter.
      * @return The total time in seconds since the counter started or was last reset.
      */
-    UFUNCTION(BlueprintCallable, BlueprintPure, Category = "Counter")
+    UFUNCTION(BlueprintCallable, BlueprintPure, Category = "Counter") // Added BlueprintPure
     float GetElapsedTime() const { return ElapsedTime; }
 
     /**
@@ -76,12 +76,8 @@ public:
     UFUNCTION(BlueprintCallable, Category = "Counter")
     void UpdateElapsedTime(float ElapsedTimeP);
 
-    /**
-     *  Sets the UScoreWidget instance that this component will update.
-     * This links the counter's value to a UI element for display.
-     *  ScoreWidgetp Pointer to the UScoreWidget instance.
-     */
-    void SetScoreWidget(UScoreWidget* ScoreWidgetp) { ScoreWidget = ScoreWidgetp; }
+
+
 
     /**
      *  Called every frame if the component is ticking.
@@ -113,17 +109,19 @@ public:
     UFUNCTION(BlueprintCallable, Category = "Counter")
     void ResetCounter();
 
+
+
     /**
      *  The name of the save game slot used to store the high score for this counter.
      * Should be unique for each type of activity being scored (e.g., "MeditationScore", "BreathingScore").
      */
-    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Save Game")
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Save Game") // Exposed for configuration
     FString SaveSlotName;
 
     /**
      *  The user index associated with the save game slot. Typically 0 for single-player games.
      */
-    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Save Game")
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Save Game") // Exposed for configuration
     int32 UserIndex = 0;
     
     /**
@@ -137,8 +135,14 @@ public:
      *  Points awarded upon successful completion of this activity.
      *  Values vary based on activity type as specified in class documentation.
      */
-    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Activity Settings")
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Activity Settings", meta = (ClampMin = "1", UIMin = "1"))
     int32 CompletionPoints = 5;
+
+    /**
+     *  Minimum points awarded for this activity.
+     */
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Activity Settings", meta = (ClampMin = "1", UIMin = "1"))
+    int32 MinimumPoints = 1;
     
     /**
      *  Returns whether the activity has reached its target time.
@@ -161,9 +165,13 @@ public:
     UFUNCTION(BlueprintCallable, BlueprintPure, Category = "Activity")
     float GetTimeRemaining() const;
 
-    UScoreWidget* GetScoreWidget() const { return ScoreWidget; }
     float GetTargetTime() const { return TargetTime; }
     int32 GetCompletionPoints() const { return CompletionPoints; }
+
+    /** Sets the timer widget reference. */
+    void SetTimerWidget(UTimerWidget* TimerWidgetP) { TimerWidget = TimerWidgetP; }
+    /** Gets the timer widget reference. */
+    UTimerWidget* GetTimerWidget() const { return TimerWidget; }
 
 protected:
     /**
@@ -181,10 +189,13 @@ private:
 
     /**  The high score for this activity, loaded from save or updated if beaten. */
     float HighScore = 0.0f;
-
-    /**  Pointer to the UScoreWidget instance used to display the current time/score. Needs to be set via SetScoreWidget. */
     UPROPERTY(Transient)
-    TObjectPtr<UScoreWidget> ScoreWidget;
+	AEscapeCharacter* CachedEscapeCharacter;
+
+
+    /** Reference to the timer widget for displaying elapsed/remaining time. */
+    UPROPERTY(Transient)
+    UTimerWidget* TimerWidget = nullptr;
 
     /**
      *  Checks the current score against the saved high score and updates the save file if necessary.
@@ -192,8 +203,6 @@ private:
      */
     void CheckAndSaveHighScore(float CurrentScore);
 
-    /**  Cached weak pointer reference to the owning character. */
-    TWeakObjectPtr<ACharacter> OwningCharacter;
 
     void ClampElapsedTime();
 

@@ -64,11 +64,7 @@ void UMeditationComponent::StopMeditation(){
     {
         HandleMeditationStop();
 
-        // Hide the activity UI
-        if (UActivityUIWidget* ActivityWidget = CachedEscapeCharacter->GetActivityUIWidget())
-        {
-            ActivityWidget->SetVisibility(ESlateVisibility::Collapsed); // Do not hide, keep score visible
-        }
+        
 
         if (BlockRef)
         {
@@ -95,29 +91,34 @@ void UMeditationComponent::HandleMeditationStart()
     
 
     // --- Meditation Type Specific Setup ---
-    int32 CurrentCompletionPoints = DefaultCompletionPoints;
+    int32 CurrentCompletionPoints = 0;
+    int32 CurrentMinimumPoints = 0;
     float CurrentMeditationDuration = MeditationDuration; // Use component's default duration unless overridden
     USoundCue* MusicToPlay = nullptr;
 
     switch (MeditationType)
     {
         case EMeditationType::Guided:
-            CurrentCompletionPoints = 5;
+            CurrentCompletionPoints = CompletionPoints_Guided;
+            CurrentMinimumPoints = MinimumPoints_Guided;
             MusicToPlay = GuidedMeditationMusic;
             UE_LOG(LogTemp, Log, TEXT("Starting Guided Meditation (%d points, %.1f seconds)"), CurrentCompletionPoints, CurrentMeditationDuration);
             break;
         case EMeditationType::Mindfulness:
-            CurrentCompletionPoints = 10;
+            CurrentCompletionPoints = CompletionPoints_Mindfulness;
+            CurrentMinimumPoints = MinimumPoints_Mindfulness;
             MusicToPlay = MindfulnessMeditationMusic;
             UE_LOG(LogTemp, Log, TEXT("Starting Mindfulness Meditation (%d points, %.1f seconds)"), CurrentCompletionPoints, CurrentMeditationDuration);
             break;
         case EMeditationType::Cosmic:
-            CurrentCompletionPoints = 50;
+            CurrentCompletionPoints = CompletionPoints_Cosmic;
+            CurrentMinimumPoints = MinimumPoints_Cosmic;
             MusicToPlay = CosmicMeditationMusic;
             UE_LOG(LogTemp, Log, TEXT("Starting Cosmic Meditation (%d points, %.1f seconds)"), CurrentCompletionPoints, CurrentMeditationDuration);
             break;
         case EMeditationType::MeditationPad:
-            CurrentCompletionPoints = 10; // Or another value for pad
+            CurrentCompletionPoints = CompletionPoints_MeditationPad;
+            CurrentMinimumPoints = MinimumPoints_MeditationPad;
             MusicToPlay = MeditationPadMusic;
             UE_LOG(LogTemp, Log, TEXT("Starting Meditation Pad (%d points, %.1f seconds)"), CurrentCompletionPoints, CurrentMeditationDuration);
             break;
@@ -137,9 +138,11 @@ void UMeditationComponent::HandleMeditationStart()
         CachedEscapeCharacter->SecondCounterComponent->TargetTime = CurrentMeditationDuration;
         CachedEscapeCharacter->SecondCounterComponent->ResetCounter();
         CachedEscapeCharacter->SecondCounterComponent->StartCounter();
-        // Immediately update the UI
-        if (UScoreWidget* ScoreWidget = CachedEscapeCharacter->SecondCounterComponent->GetScoreWidget())
-        { ScoreWidget->UpdateActivityProgress(0.0f, CurrentMeditationDuration, CurrentCompletionPoints); }
+        // Immediately update UI
+        if (UTimerWidget* TimerWidget = CachedEscapeCharacter->GetActivityUIWidget()->GetTimerWidget())
+        {
+            TimerWidget->UpdateTimer(0.0f, TEXT("Time"));
+        }
     }
     MeditationTimer = 0.0f; // Reset internal timer
 

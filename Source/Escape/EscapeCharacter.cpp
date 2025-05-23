@@ -169,7 +169,6 @@ void AEscapeCharacter::BeginPlay()
 			// Link the timer components to the score display widget within the Activity UI.
 			if (UScoreWidget* ScoreWidget = ActivityUIWidget->GetScoreWidget())
 			{
-				SecondCounterComponent->SetScoreWidget(ScoreWidget);
 				ScoreWidget->UpdateScore(AggregatedScore);
 			}
 			else

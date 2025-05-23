@@ -92,8 +92,28 @@ public:
     UFUNCTION(BlueprintCallable, BlueprintPure, Category = "Stretching")
     bool IsStretchingTimerActive() const;
 
-    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Scoring")
-    int32 CompletionPoints = 4;
+    /** Duration of stretching in seconds. Set to 0 for toggle mode (no timer). */
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Stretching", meta = (ClampMin = "0.0", UIMin = "0.0"))
+    float StretchingDuration = 300.0f;
+
+    /** Points awarded for completing the stretching activity. */
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Scoring", meta = (ClampMin = "1", UIMin = "1"))
+    int32 CompletionPoints = 3;
+
+    /** Minimum points awarded for this activity. */
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Scoring", meta = (ClampMin = "1", UIMin = "1"))
+    int32 MinimumPoints = 1;
+
+    /** Completion and minimum points for Stretching */
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Scoring", meta = (ClampMin = "1", UIMin = "1"))
+    int32 CompletionPoints_Stretching = 8;
+
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Scoring", meta = (ClampMin = "1", UIMin = "1"))
+    int32 MinimumPoints_Stretching = 1;
+
+    /** Detraction points for stretching activity. */
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Scoring", meta = (ClampMin = "0", UIMin = "0"))
+    int32 DetractionPoints_Stretching = 0;
 
 protected:
     /** 
@@ -108,15 +128,6 @@ private:
      */
     UPROPERTY(VisibleInstanceOnly, Category = "Stretching", Transient)
     EStretchState CurrentStretchState = EStretchState::StretchLeft;
-
-    /**
-     *  Duration of stretching in seconds. Set to 0 for toggle mode (no timer).
-     * If > 0, the stretching activity will automatically stop after this time.
-     * If = 0, stretching will continue until stopped manually.
-     * Default is 600 seconds (10 minutes) as specified in documentation (10-minute stretching routine).
-     */
-    UPROPERTY(EditAnywhere, Category = "Stretching", meta = (ClampMin = "0.0", UIMin = "0.0"))
-    float StretchingDuration = 600.0f;
 
     /**
      *  The SoundCue asset to play during the stretching exercise.

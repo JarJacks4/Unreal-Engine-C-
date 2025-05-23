@@ -35,8 +35,8 @@ USecondCounterComponent::USecondCounterComponent()
     PrimaryComponentTick.bCanEverTick = true; // Enable ticking to update time
     bIsCounting = false; // Start in a stopped state
     ElapsedTime = 0.0f; // Initialize time to zero
-    ScoreWidget = nullptr; // Initialize widget pointer
-    OwningCharacter = nullptr; // Initialize character pointer
+    TimerWidget = nullptr; // Initialize timer widget pointer
+    CachedEscapeCharacter = nullptr; // Initialize character pointer
 }
 
 /**
@@ -48,8 +48,7 @@ void USecondCounterComponent::BeginPlay()
 {
     Super::BeginPlay();
     // Cache the owning character for potential future use (though not currently used elsewhere in this component)
-    OwningCharacter = Cast<ACharacter>(GetOwner());
-
+    CachedEscapeCharacter = Cast<AEscapeCharacter>(GetOwner());
     // Load high score from save game at startup
     if (!SaveSlotName.IsEmpty())
     {
@@ -142,19 +141,13 @@ void USecondCounterComponent::TickComponent(float DeltaTime, ELevelTick TickType
     {
         ElapsedTime += DeltaTime;
 
-        // Update the UI every tick
-        if (ScoreWidget)
+        // Update the timer widget every tick
+        if (CachedEscapeCharacter->GetActivityUIWidget()->GetTimerWidget())
         {
-            ScoreWidget->UpdateScore(ElapsedTime, TEXT("Timer"));
-            ScoreWidget->UpdateActivityProgress(ElapsedTime, TargetTime, CompletionPoints);
+            CachedEscapeCharacter->GetActivityUIWidget()->GetTimerWidget()->UpdateActivityTimer(ElapsedTime, TargetTime, true, TEXT("Time"));
         }
-        else
-        {
-            if (GEngine)
-            {
-                GEngine->AddOnScreenDebugMessage(-1, 1.0f, FColor::Red, TEXT("ScoreWidget is null in TickComponent!"));
-            }
-        }
+
+        
 
         if (IsActivityComplete() && bIsCounting)
         {
@@ -170,10 +163,13 @@ void USecondCounterComponent::TickComponent(float DeltaTime, ELevelTick TickType
  */
 void USecondCounterComponent::StartCounter()
 {
-    if (ScoreWidget)
+    if (CachedEscapeCharacter->GetActivityUIWidget()->GetTimerWidget())
     {
-        ScoreWidget->SetVisibility(ESlateVisibility::Visible);
+
+        CachedEscapeCharacter->GetActivityUIWidget()->GetTimerWidget()->UpdateActivityTimer(0.0f, TargetTime, true, TEXT("Time"));
+        CachedEscapeCharacter->GetActivityUIWidget()->GetTimerWidget()->SetVisibility(ESlateVisibility::Visible);
     }
+
     bIsCounting = true;
     bHasStopped = false;
 }
@@ -189,19 +185,22 @@ void USecondCounterComponent::StopCounter()
     bHasStopped = true;
     bIsCounting = false;
     ClampElapsedTime();
-    // Always update the UI with the final clamped value
-    if (ScoreWidget)
+
+    // Update the timer widget with the final value
+    if (CachedEscapeCharacter->GetActivityUIWidget()->GetTimerWidget())
     {
-        ScoreWidget->UpdateActivityProgress(ElapsedTime, TargetTime, CompletionPoints);
+        CachedEscapeCharacter->GetActivityUIWidget()->GetTimerWidget()->UpdateActivityTimer(ElapsedTime, TargetTime, true, TEXT("Time"));
+        CachedEscapeCharacter->GetActivityUIWidget()->GetTimerWidget()->SetVisibility(ESlateVisibility::Hidden);
     }
+
     // Always save the high score if appropriate
     CheckAndSaveHighScore(ElapsedTime);
-    AEscapeCharacter* EscapeChar = Cast<AEscapeCharacter>(GetOwner());
+
     // Only award points if activity was completed
-    if (EscapeChar && ElapsedTime >= TargetTime)
+    if (CachedEscapeCharacter && ElapsedTime >= TargetTime)
     {
-        EscapeChar->AggregatedScore += CompletionPoints;
-        PrintScoreDebugMessage(EscapeChar, FString::Printf(TEXT("[StopCounter] AggregatedScore after adding points: %f"), EscapeChar->AggregatedScore), FColor::Yellow);
+        CachedEscapeCharacter->AggregatedScore += CompletionPoints;
+        PrintScoreDebugMessage(CachedEscapeCharacter, FString::Printf(TEXT("[StopCounter] AggregatedScore after adding points: %f"), CachedEscapeCharacter->AggregatedScore), FColor::Yellow);
         // Animate the aggregated score in the ScoreWidget
        
         // Save AggregatedScore to WellnessSaveGame
@@ -211,20 +210,15 @@ void USecondCounterComponent::StopCounter()
         if (!SaveGameInstance)
         {
             SaveGameInstance = Cast<UWellnessSaveGame>(UGameplayStatics::CreateSaveGameObject(UWellnessSaveGame::StaticClass()));
-            PrintScoreDebugMessage(EscapeChar, TEXT("[StopCounter] Created new WellnessSaveGame instance."), FColor::Magenta);
+            PrintScoreDebugMessage(CachedEscapeCharacter, TEXT("[StopCounter] Created new WellnessSaveGame instance."), FColor::Magenta);
         }
         if (SaveGameInstance)
         {
-            SaveGameInstance->AggregatedScore = EscapeChar->AggregatedScore;
+            SaveGameInstance->AggregatedScore = CachedEscapeCharacter->AggregatedScore;
             bool bSaveSuccess = UGameplayStatics::SaveGameToSlot(SaveGameInstance, WellnessSaveSlot, WellnessUserIndex);
-            PrintScoreDebugMessage(EscapeChar, FString::Printf(TEXT("[StopCounter] Saved AggregatedScore: %f (Success: %s)"), EscapeChar->AggregatedScore, bSaveSuccess ? TEXT("true") : TEXT("false")), bSaveSuccess ? FColor::Green : FColor::Red);
+            PrintScoreDebugMessage(CachedEscapeCharacter, FString::Printf(TEXT("[StopCounter] Saved AggregatedScore: %f (Success: %s)"), CachedEscapeCharacter->AggregatedScore, bSaveSuccess ? TEXT("true") : TEXT("false")), bSaveSuccess ? FColor::Green : FColor::Red);
         }
     }
-     if (ScoreWidget)
-        {
-            ScoreWidget->AnimateScoreTo(EscapeChar->AggregatedScore, 200.0f);
-        }
-    PrintScoreDebugMessage(EscapeChar, FString::Printf(TEXT("[StopCounter] Timer stopped. Final ElapsedTime: %.2f, TargetTime: %.2f"), ElapsedTime, TargetTime), FColor::Blue);
 }
 
 /**
@@ -236,10 +230,13 @@ void USecondCounterComponent::ResetCounter()
 {
     ElapsedTime = 0.0f;
     bHasStopped = false;
-    if (ScoreWidget)
+
+    // Reset the timer widget
+    if (CachedEscapeCharacter->GetActivityUIWidget()->GetTimerWidget())
     {
-        ScoreWidget->UpdateScore(ElapsedTime);
+        CachedEscapeCharacter->GetActivityUIWidget()->GetTimerWidget()->UpdateActivityTimer(0.0f, TargetTime, true, TEXT("Time"));
     }
+
 }
 
 /**
@@ -269,11 +266,13 @@ float USecondCounterComponent::GetTimeRemaining() const
 
 void USecondCounterComponent::UpdateElapsedTime(float ElapsedTimeP)
 {
+    GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Green, TEXT("Timer Updated2"));
+
     ElapsedTime += ElapsedTimeP;
     ClampElapsedTime();
-    if (ScoreWidget)
+    if (TimerWidget)
     {
-        ScoreWidget->UpdateActivityProgress(ElapsedTime, TargetTime, CompletionPoints);
+        TimerWidget->UpdateActivityTimer(ElapsedTime, TargetTime, true);
     }
 }
 

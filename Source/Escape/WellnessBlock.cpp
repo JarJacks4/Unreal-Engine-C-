@@ -284,13 +284,11 @@ void AWellnessBlock::UpdateLevitation(float DeltaTime)
         // Check if we've reached or passed the target height
         if (NewHeight >= TargetHeight)
         {
-			GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Green, TEXT("Reached max height"));
             MeditationBlockState = EMeditationBlockState::FloatingDown; // Transition to floating
             NewHeight = TargetHeight; // Snap to exact height
         }
         else
         {
-            GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Green, TEXT("Rising"));
 
         }
         break;

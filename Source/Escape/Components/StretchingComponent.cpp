@@ -83,21 +83,26 @@ void UStretchingComponent::StopStretching()
  */
 void UStretchingComponent::HandleStretchingStart()
 {
+    int32 CurrentCompletionPoints = CompletionPoints_Stretching;
+    int32 CurrentMinimumPoints = MinimumPoints_Stretching;
+
     // Ensure OwningCharacter is valid before proceeding
     if (!CachedEscapeCharacter) return;
-
-
-    
 
     // Set character state and start the score counter
     CachedEscapeCharacter->SetMinuteGoalActionState(EMinuteGoalActionsState::Stretching);
     
     if (CachedEscapeCharacter->SecondCounterComponent)
     {
-        CachedEscapeCharacter->SecondCounterComponent->CompletionPoints = CompletionPoints;
+        CachedEscapeCharacter->SecondCounterComponent->CompletionPoints = CompletionPoints_Stretching;
         CachedEscapeCharacter->SecondCounterComponent->TargetTime = StretchingDuration;
         CachedEscapeCharacter->SecondCounterComponent->ResetCounter();
         CachedEscapeCharacter->SecondCounterComponent->StartCounter();
+        // Immediately update UI
+        if (UTimerWidget* TimerWidget = CachedEscapeCharacter->GetActivityUIWidget()->GetTimerWidget())
+        {
+            TimerWidget->UpdateTimer(0.0f, TEXT("Time"));
+        }
     }
     
     StretchingTimer = 0.0f; // Reset internal timer tracking

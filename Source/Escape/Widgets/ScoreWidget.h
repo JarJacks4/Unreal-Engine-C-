@@ -7,14 +7,14 @@
 // Forward declarations
 class UTextBlock;
 class ACharacter;
-class UProgressBar;
 
 /**
  *  UScoreWidget
- * A UI widget dedicated to displaying activity progress, time remaining, and points.
- * It contains a UTextBlock element (`ScoreText`) which is updated via the `UpdateScore` function,
- * and optional elements for showing progress towards completion and time remaining.
+ * A UI widget dedicated to displaying activity progress, points, and optionally a progress bar.
+ * It contains a UTextBlock element (`ScoreText`) which is updated via the `UpdateScore` function.
  * This widget is typically used for wellness activities like meditation, breathing exercises, etc.
+ *
+ * Note: Timer display is now handled by UTimerWidget.
  */
 UCLASS()
 class ESCAPE_API UScoreWidget : public UUserWidget
@@ -30,29 +30,7 @@ public:
     UFUNCTION(BlueprintCallable, Category = "Score")
     void UpdateScore(float Score, const FString& Label = TEXT("Score"));
     
-    /**
-     *  Updates the widget with complete activity information.
-     *  ElapsedTime Current time elapsed in the activity
-     *  TargetTime Total time required for activity completion
-     *  Points Points awarded upon completion
-     *  UpdateProgressBar Whether to update the progress bar (if available)
-     */
-    UFUNCTION(BlueprintCallable, Category = "Activity")
-    void UpdateActivityProgress(float ElapsedTime, float TargetTime, int32 Points, bool UpdateProgressBar = true);
-    
-    /**
-     *  Sets the display mode for the widget
-     *  bShowTimeRemaining If true, shows time remaining; if false, shows elapsed time
-     */
-    UFUNCTION(BlueprintCallable, Category = "Display")
-    void SetTimeRemainingMode(bool bShowTimeRemaining);
-    
-    /**
-     *  Sets the activity name to be displayed (optional)
-     *  ActivityName Name of the current activity (e.g., "Guided Meditation", "Deep Breathing")
-     */
-    UFUNCTION(BlueprintCallable, Category = "Display")
-    void SetActivityName(const FString& ActivityName);
+
 
     /**
      *  Gets the UTextBlock instance used for displaying the score.
@@ -82,15 +60,6 @@ public:
      */
     UFUNCTION(BlueprintCallable, Category = "Score|Setup")
     void SetPlayer(ACharacter* Player);
-    
-    /**
-     *  Formats time in seconds to a readable string (MM:SS or MM:SS.MS format)
-     *  TimeInSeconds Time to format
-     *  bShowMilliseconds Whether to include milliseconds
-     *  @return Formatted time string
-     */
-    UFUNCTION(BlueprintCallable, BlueprintPure, Category = "Formatting")
-    static FString FormatTime(float TimeInSeconds, bool bShowMilliseconds = false);
 
     /**
      *  Animates the score display to a target value.
@@ -128,46 +97,10 @@ protected:
     TObjectPtr<UTextBlock> ActivityNameText;
     
     /**
-     *  Reference to the TextBlock widget that displays remaining/elapsed time.
-     */
-    UPROPERTY(meta = (BindWidgetOptional))
-    TObjectPtr<UTextBlock> TimeText;
-    
-    /**
      *  Reference to the TextBlock widget that displays points to be awarded.
      */
     UPROPERTY(meta = (BindWidgetOptional))
     TObjectPtr<UTextBlock> PointsText;
-    
-    /**
-     *  Reference to the ProgressBar widget that shows progress towards completion.
-     */
-    UPROPERTY(meta = (BindWidgetOptional))
-    TObjectPtr<UProgressBar> ActivityProgressBar;
-    
-    /**
-     *  Whether to show time remaining (true) or elapsed time (false)
-     */
-    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Display Options")
-    bool bShowTimeRemaining = true;
-    
-    /**
-     *  The activity name to display
-     */
-    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Display Options")
-    FString CurrentActivityName;
-    
-    /**
-     *  Target time required for activity completion
-     */
-    UPROPERTY(Transient)
-    float CurrentTargetTime = 0.0f;
-    
-    /**
-     *  Points awarded for completing the current activity
-     */
-    UPROPERTY(Transient)
-    int32 CurrentPoints = 0;
 
     /**
      *  Weak pointer reference to the owning player character.
