@@ -210,7 +210,7 @@ private:
     /**
      *  The width of the path visuals.
      */
-    UPROPERTY(EditAnywhere, Category = "Navigation|Visuals", meta = (ClampMin = "1.0", UIMin = "1.0"))
+    UPROPERTY(EditAnywhere, Category = "Navigation|Visuals", meta = (ClampMin = "0", UIMin = "0"))
     float PathWidth = 30.0f;
     
     /**

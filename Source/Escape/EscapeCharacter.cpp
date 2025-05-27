@@ -117,7 +117,7 @@ void AEscapeCharacter::BeginPlay()
 	}
 
 	// Platform-specific UI setup for mobile devices.
-	if (UGameplayStatics::GetPlatformName() == "Android" || UGameplayStatics::GetPlatformName() == "IOS" || UGameplayStatics::GetPlatformName() == "Windows"  || UGameplayStatics::GetPlatformName() =="macOS" )
+	if (UGameplayStatics::GetPlatformName() == "Android" || UGameplayStatics::GetPlatformName() == "IOS" || UGameplayStatics::GetPlatformName() == "Windows" )
 	{
 		if (MobileUIWidgetClass)
 		{
