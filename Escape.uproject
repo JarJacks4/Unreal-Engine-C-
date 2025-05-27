@@ -83,7 +83,8 @@
 		{
 			"Name": "JWT",
 			"Enabled": true
-		},		{
+		},
+		{
 			"Name": "LiveLinkMasterLockit",
 			"Enabled": true
 		},
@@ -132,7 +133,8 @@
 			"SupportedTargetPlatforms": [
 				"Win64"
 			]
-			],
+		}
+	],
 	"TargetPlatforms": [
 		"Android",
 		"Windows"
