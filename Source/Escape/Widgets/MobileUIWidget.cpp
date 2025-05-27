@@ -1,31 +1,10 @@
-
-
 #include "MobileUIWidget.h"
-#include "../EscapeCharacter.h"
+#include "../EscapeCharacter.h" // Include for casting OwningCharacter and getting BlockType
+#include "InteractionWidget.h" // Ensure InteractionWidget definition is included
+#include "Kismet/GameplayStatics.h" // For GetPlatformName
+#include "../Components/WellnessComponent.h"
 
-
-
-
-
-void UMobileUIWidget::ChangeInteractionUI()
+void UMobileUIWidget::SetPlayer(ACharacter* Player)
 {
-	if (InteractionWidget && (PLATFORM_ANDROID || PLATFORM_IOS && OwningCharacter ))
-	{
-
-		// Shows the Interaction Widget on the viewport
-		InteractionWidget->SetVisibility(ESlateVisibility::Visible);
-
-		switch (Cast<AEscapeCharacter>(OwningCharacter)->GetBlockType()) {
-		case EWellnessBlockType::Meditation:
-			InteractionWidget->SetWidgetMeditationImage();
-			break;
-		case EWellnessBlockType::Stretching:
-			InteractionWidget->SetWidgetStretchingImage();
-			break;
-		case EWellnessBlockType::None:
-			InteractionWidget->SetWidgetDeepBreathingImage();
-			break;
-		}
-	}
+	OwningCharacter = TWeakObjectPtr<ACharacter>(Player); 
 }
-
