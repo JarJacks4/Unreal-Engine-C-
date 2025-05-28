@@ -27,15 +27,15 @@ public class Escape : ModuleRules
         {
             // Explicitly ensure no Objective-C for Android builds
             bEnableObjCAutomaticReferenceCounting = false;
-        }
-
-        // Only include Objective-C++ source files for iOS
+        }        // Only include Objective-C++ source files for iOS
         if (Target.Platform == UnrealTargetPlatform.IOS)
         {
             PrivateIncludePaths.AddRange(new string[] { "Escape/Private/IOS" });
-            PrivateDependencyModuleNames.AddRange(new string[] { });            PrivateIncludePathModuleNames.AddRange(new string[] { });
+            PrivateDependencyModuleNames.AddRange(new string[] { });
+            PrivateIncludePathModuleNames.AddRange(new string[] { });
             PrivateDefinitions.Add("WITH_IOS_SPEECH=1");
-            // .mm files in Private/IOS/ will be automatically included for iOS builds
+            
+            // The .mm files will be automatically discovered in Private/IOS/ for iOS builds
         }
         else
         {
