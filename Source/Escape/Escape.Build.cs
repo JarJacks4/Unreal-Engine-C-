@@ -6,6 +6,8 @@ public class Escape : ModuleRules
 {
 	public Escape(ReadOnlyTargetRules Target) : base(Target)
 	{
+		PCHUsage = PCHUsageMode.UseExplicitOrSharedPCHs;
+
         PublicDependencyModuleNames.AddRange(new string[] { "Core", "CoreUObject", "Engine", "InputCore", "EnhancedInput", "UMG", "Slate", "SlateCore", "Json", "JsonUtilities", "HTTP", "NavigationSystem" });
 
         // iOS-specific frameworks for Speech Recognition - only for iOS builds
@@ -17,11 +19,8 @@ public class Escape : ModuleRules
                 "AVFoundation"
             });
             
-            // Enable Objective-C ARC for the entire module on iOS
-            bEnableObjCAutomaticReferenceCounting = true;
-            
-            // Use separate PCH for iOS to avoid ARC conflicts
-            PCHUsage = PCHUsageMode.UseExplicitOrSharedPCHs;
+            // DO NOT enable ARC at module level - let individual .mm files handle it
+            // bEnableObjCAutomaticReferenceCounting = true;
             
             // Include iOS-specific paths and definitions
             PrivateIncludePaths.AddRange(new string[] { "Escape/Private/IOS" });
@@ -31,7 +30,6 @@ public class Escape : ModuleRules
         }
         else
         {
-            PCHUsage = PCHUsageMode.UseExplicitOrSharedPCHs;
             PrivateDefinitions.Add("WITH_IOS_SPEECH=0");
         }
 	}
