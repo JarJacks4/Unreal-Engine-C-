@@ -1,5 +1,10 @@
 #if PLATFORM_IOS
 
+// Ensure ARC is enabled for this file
+#if !__has_feature(objc_arc)
+#error This file must be compiled with ARC. Use -fobjc-arc flag.
+#endif
+
 #import <Foundation/Foundation.h>
 #import <Speech/Speech.h>
 #import <AVFoundation/AVFoundation.h>
