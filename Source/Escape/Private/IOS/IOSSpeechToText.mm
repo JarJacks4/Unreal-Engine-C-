@@ -56,7 +56,7 @@ extern "C" void OnIOSSpeechResult(const char* result);
         self.recognitionTask = nil;
     }
     
-    NSError *error;
+    NSError *error = nil;
     AVAudioSession *audioSession = [AVAudioSession sharedInstance];
     [audioSession setCategory:AVAudioSessionCategoryRecord error:&error];
     [audioSession setMode:AVAudioSessionModeMeasurement error:&error];
@@ -83,23 +83,23 @@ extern "C" void OnIOSSpeechResult(const char* result);
     self.recognitionRequest.shouldReportPartialResults = YES;
     
     self.recognitionTask = [self.speechRecognizer recognitionTaskWithRequest:self.recognitionRequest
-                                                                resultHandler:^(SFSpeechRecognitionResult * _Nullable result, NSError * _Nullable error) {
-        BOOL isFinal = NO;
-        
-        if (result) {
-            NSString *transcription = result.bestTranscription.formattedString;
-            OnIOSSpeechResult([transcription UTF8String]);
-            isFinal = result.isFinal;
-        }
-        
-        if (error || isFinal) {
-            [self.audioEngine stop];
-            [inputNode removeTapOnBus:0];
+        resultHandler:^(SFSpeechRecognitionResult * _Nullable result, NSError * _Nullable taskError) {
+            BOOL isFinal = NO;
             
-            self.recognitionRequest = nil;
-            self.recognitionTask = nil;
-        }
-    }];
+            if (result) {
+                NSString *transcription = result.bestTranscription.formattedString;
+                OnIOSSpeechResult([transcription UTF8String]);
+                isFinal = result.isFinal;
+            }
+            
+            if (taskError || isFinal) {
+                [self.audioEngine stop];
+                [inputNode removeTapOnBus:0];
+                
+                self.recognitionRequest = nil;
+                self.recognitionTask = nil;
+            }
+        }];
     
     AVAudioFormat *recordingFormat = [inputNode outputFormatForBus:0];
     [inputNode installTapOnBus:0 bufferSize:1024 format:recordingFormat block:^(AVAudioPCMBuffer * _Nonnull buffer, AVAudioTime * _Nonnull when) {
