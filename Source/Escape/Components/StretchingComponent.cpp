@@ -44,8 +44,9 @@ void UStretchingComponent::StartStretching()
     // Clear any existing timers before starting stretching
     ClearStretchingTimer();
 
-    // Only start if currently idle
+    // Only start if currently idleg
     if (CachedEscapeCharacter->GetMinuteGoalActionsState() == EMinuteGoalActionsState::Idle) {
+		GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Green, TEXT("Starting Stretching..."));
         HandleStretchingStart();
     }
 }
@@ -72,8 +73,17 @@ void UStretchingComponent::StopStretching()
         // Reset character state to Idle
         CachedEscapeCharacter->SetMinuteGoalActionState(EMinuteGoalActionsState::Idle);
 
+		if (CachedEscapeCharacter->GetActivityUIWidget() && CachedEscapeCharacter->GetActivityUIWidget()->GetRythmWidget())
+		{
+			// Hide the stretching UI elements
+			CachedEscapeCharacter->GetActivityUIWidget()->GetRythmWidget()->SetVisibility(ESlateVisibility::Hidden);
+			CachedEscapeCharacter->GetActivityUIWidget()->GetRythmWidget()->StopRhythmGame();
+		}
+
         // Clear any active timers
         ClearStretchingTimer();
+        
+        
     }
 }
 
@@ -106,7 +116,12 @@ void UStretchingComponent::HandleStretchingStart()
     }
     
     StretchingTimer = 0.0f; // Reset internal timer tracking
+    if (CachedEscapeCharacter->GetActivityUIWidget() && CachedEscapeCharacter->GetActivityUIWidget()->GetRythmWidget())
+    {
 
+        CachedEscapeCharacter->GetActivityUIWidget()->GetRythmWidget()->SetVisibility(ESlateVisibility::Visible);
+		CachedEscapeCharacter->GetActivityUIWidget()->GetRythmWidget()->StartRhythmGame();
+    }
     // Play ambient music if assigned
     if (StretchingMusic && GetWorld())
     {

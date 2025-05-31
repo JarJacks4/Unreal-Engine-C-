@@ -103,37 +103,51 @@ void URythmWidget::ClearActiveArrows()
  */
 void URythmWidget::SpawnArrow()
 {
+    GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Green, TEXT("Spawning Arrow 1..."));
     // Ensure necessary components and the arrow widget class are valid before proceeding.
     if (!ArrowWidgetClass || !TargetZone)
     {
         return;
     }
-
-    const int32 Position = FMath::RandRange(0, 3);
-
+	GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Green, TEXT("Spawning Arrow 2..."));
+    const int8 Position = FMath::RandRange(0,3);
+    
     UArrow_Widget* NewArrow = CreateWidget<UArrow_Widget>(GetOwningPlayer(), ArrowWidgetClass);    if (!NewArrow)
     {
         return;
     }
-
-    // Determine the target lane and apply initial transformations based on the lane index.
+    SpawnZonesContainer->AddChild(NewArrow); // Add the new arrow widget to the canvas panel
+	Cast<UCanvasPanelSlot>(NewArrow->Slot)->SetSize(FVector2D(256, 256)); // Set size of the arrow widget
+	GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Green, FString::Printf(TEXT("Spawning Arrow at Position: %d"), Position));
     switch (Position)
     {
     case 0: // Left arrow
+		NewArrow->StretchState = EStretchState::StretchLeft;
+		Cast<UCanvasPanelSlot>(NewArrow->Slot)->SetPosition(Cast<UCanvasPanelSlot>(SpawnZones[0]->Slot)->GetPosition()); // Set initial position
         NewArrow->SetRenderTransformAngle(180);
         break;
     case 1: // Right arrow
+		NewArrow->StretchState = EStretchState::StretchRight;
+        Cast<UCanvasPanelSlot>(NewArrow->Slot)->SetPosition(Cast<UCanvasPanelSlot>(SpawnZones[1]->Slot)->GetPosition()); // Set initial position
+        NewArrow->SetRenderTransformAngle(-180);
+
         break;
-    case 2: // Up arrolw
+    case 2: // Up arrow
+		NewArrow->StretchState = EStretchState::StretchUp;
+        Cast<UCanvasPanelSlot>(NewArrow->Slot)->SetPosition(Cast<UCanvasPanelSlot>(SpawnZones[2]->Slot)->GetPosition()); // Set initial position
+
         NewArrow->SetRenderTransformAngle(-90);
         break;
     case 3: // Down arrow
+		NewArrow->StretchState = EStretchState::StretchDown;
+        Cast<UCanvasPanelSlot>(NewArrow->Slot)->SetPosition(Cast<UCanvasPanelSlot>(SpawnZones[3]->Slot)->GetPosition()); // Set initial position
         NewArrow->SetRenderTransformAngle(90);
         break;
     default:
         NewArrow->RemoveFromParent(); // Clean up
         return;
     }
+	ActiveArrows.Add(NewArrow); // Add to active arrows list
 }
 
 /**
@@ -142,16 +156,21 @@ void URythmWidget::SpawnArrow()
  */
 void URythmWidget::UpdateArrows(float DeltaTime)
 {
-    // Get the player's current stretch state once for efficiency.
-    EStretchState PlayerCurrentState = EStretchState::StretchLeft; // Default if component invalid
-    if (!CachedStretchingComponent)
+    
+    for (size_t i = 0; i < ActiveArrows.Num(); i++)
     {
-        CachedStretchingComponent = StretchingComponent.IsValid() ? Cast<UStretchingComponent>(StretchingComponent.Get()) : nullptr;
-    }
-    UStretchingComponent* StretchComp = CachedStretchingComponent;
-    if (StretchComp)
-    {
-        PlayerCurrentState = StretchComp->GetCurrentStretchState();
-    }
+        UCanvasPanelSlot* ArrowSlot = Cast<UCanvasPanelSlot>(ActiveArrows[i]->Slot);
+        ArrowSlot->SetPosition( FVector2D(ArrowSlot->GetPosition().X, ArrowSlot->GetPosition().Y + DeltaTime * ArrowSpeed));
 
+        if (ArrowSlot->GetPosition().Y >= Cast<UCanvasPanelSlot>(TargetZone->Slot)->GetPosition().Y + HitZoneTolerance) {
+            ActiveArrows[i]->RemoveFromParent(); // Remove missed arrow
+			ActiveArrows.RemoveAt(i); // Remove from active arrows list
+            
+
+            Score -= PenaltyMiss;
+			if (Score <= 0) {
+				Score = 0; // Ensure score doesn't go negative
+			}
+        }
+    }
 }

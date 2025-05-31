@@ -424,6 +424,7 @@ void AEscapeCharacter::Activity()
 			return;
 		case EWellnessBlockType::Stretching:
 			StretchingComponent->StartStretching();
+			GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Green, TEXT("Stretching started0"));
 			return;
 		case EWellnessBlockType::Journaling: 
 			JournalingComponent->StartJournaling(); 

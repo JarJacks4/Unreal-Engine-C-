@@ -4,11 +4,11 @@
 
 #include "CoreMinimal.h"
 #include "Blueprint/UserWidget.h"
+#include "Components/CanvasPanel.h" // For UImage
 #include "Arrow_Widget.h" // Include definition for TSubclassOf and TArray
 #include "RythmWidget.generated.h"
 
-// Forward declarations for bound widgets
-class UVerticalBox;
+
 class UImage;
 class UActorComponent; // For StretchingComponent reference type
 class UStretchingComponent; // Forward declare specific type
@@ -17,18 +17,7 @@ class UStretchingComponent; // Forward declare specific type
  *  Enum representing the possible stretching directions required by the rhythm game lanes.
  * Used to map lanes to player input/state and check for correct poses during hits.
  */
-UENUM(BlueprintType)
-enum class EStretchState : uint8
-{
-    /** Stretch to the left (corresponds to Lane 0). */
-    StretchLeft UMETA(DisplayName = "Stretch Left"),
-    /** Stretch to the right (corresponds to Lane 1). */
-    StretchRight UMETA(DisplayName = "Stretch Right"),
-    /** Stretch upwards (corresponds to Lane 2). */
-    StretchUp UMETA(DisplayName = "Stretch Up"),
-    /** Stretch downwards (corresponds to Lane 3). */
-    StretchDown UMETA(DisplayName = "Stretch Down")
-};
+
 
 /**
  *  URythmWidget
@@ -51,7 +40,16 @@ public:
      * Initializes lane state mapping and calculates canvas height based on target zone positions.
      */
     virtual void NativeConstruct() override;
+    /**
+	*Array of Images representing the spawn zones for arrows.
+    */
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Rhythm|Setup")
+    TArray<UImage*> SpawnZones;
+	UFUNCTION(BlueprintCallable, Category = "Rhythm|Setup")
+	UCanvasPanel* GetSpawnZonesContainer() const { return SpawnZonesContainer; }
 
+    UFUNCTION(BlueprintCallable, Category = "Rhythm|Setup")
+    UImage* GetTargetZone() const { return TargetZone.Get(); }
     /**
      *  Called every frame. If the game is active (bIsGameActive), updates the spawn timer,
      * spawns new arrows if necessary, and updates the positions of existing arrows, checking for hits/misses.
@@ -105,12 +103,10 @@ public:
     UPROPERTY(VisibleInstanceOnly, BlueprintReadOnly, Category = "Rhythm|Gameplay")
     int32 Score = 0;
 
-    /**  The vertical position (Y-coordinate) that defines the center of the hit timing window. Arrows must be hit near this line. */
-    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Rhythm|Gameplay")
-    float HitZoneCenterY = 750.0f;
+
 
     /**  The tolerance (in Unreal Units/pixels) above and below the HitZoneCenterY that defines the hit window. A larger value makes timing easier. */
-    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Rhythm|Gameplay", meta = (ClampMin = "1.0", UIMin = "1.0"))
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Rhythm|Gameplay")
     float HitZoneTolerance = 27.0f;
 
     /**  Points awarded for hitting an arrow with the correct timing and pose. */
@@ -133,6 +129,13 @@ protected:
     UPROPERTY(meta = (BindWidget))
     TObjectPtr<UImage> TargetZone;
 
+    /**  The image representing the visual target zone indicator. */
+    UPROPERTY(meta = (BindWidget))
+    TObjectPtr<UCanvasPanel> SpawnZonesContainer;
+    // --- Widget Bindings (Must be bound in the UMG Editor) ---
+
+    
+
 private:
     // --- Internal State ---
 
@@ -143,14 +146,9 @@ private:
     UPROPERTY(Transient)
     TArray<TObjectPtr<UArrow_Widget>> ActiveArrows;
 
-    /**  Array mapping the lane index (0-3) to the required EStretchState for that lane. Initialized in NativeConstruct. */
-    TArray<EStretchState> LaneStates;
-
     /**  Timer used to track when to spawn the next arrow based on ArrowSpawnInterval. Counts down in NativeTick. */
     float SpawnTimer = 0.0f;
 
-    /**  The estimated height of the playable area (lanes). Calculated in NativeConstruct based on target zone position. Used to detect missed arrows. */
-    float CanvasHeight = 800.0f; // Default fallback value
 
     /**  Weak pointer reference to the UStretchingComponent. Used to check player state on hit. Set via SetStretchingComponent. */
     UPROPERTY(Transient)
@@ -168,22 +166,6 @@ private:
      *  DeltaTime The time elapsed since the last frame.
      */
     void UpdateArrows(float DeltaTime);
-
-    /**
-     *  Checks if an arrow at a given Y position is within the designated hit timing window (HitZoneCenterY +/- HitZoneTolerance).
-     *  Arrow The arrow widget being checked (currently unused in function body).
-     *  LaneIndex The index of the lane the arrow is in (currently unused in function body).
-     *  ArrowY The current Y position of the arrow (typically the bottom or center).
-     * @return True if the arrow's Y position is within the hit window, false otherwise.
-     */
-    bool CheckHit(UUserWidget* Arrow, int32 LaneIndex, float ArrowY);
-
-    /**
-     *  Calculates the initial X position for spawning an arrow in a specific lane based on the layout of the lane widgets.
-     *  LaneIndex The index of the lane (0=Left, 1=Right, 2=Up, 3=Down).
-     * @return FVector2D containing the calculated X position and a default Y position (usually 0 or near the top).
-     */
-    FVector2D GetLanePosition(int32 LaneIndex);
 
     /**  Removes all arrows from the lanes and clears the ActiveArrows array. */
     void ClearActiveArrows();
