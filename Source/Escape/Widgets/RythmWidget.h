@@ -129,37 +129,9 @@ public:
 protected:
     // --- Widget Bindings (Must be bound in the UMG Editor) ---
 
-    /**  The vertical box representing the left lane where arrows travel. */
+    /**  The image representing the visual target zone indicator. */
     UPROPERTY(meta = (BindWidget))
-    TObjectPtr<UVerticalBox> LeftLane;
-
-    /**  The vertical box representing the right lane where arrows travel. */
-    UPROPERTY(meta = (BindWidget))
-    TObjectPtr<UVerticalBox> RightLane;
-
-    /**  The vertical box representing the up lane where arrows travel. */
-    UPROPERTY(meta = (BindWidget))
-    TObjectPtr<UVerticalBox> UpLane;
-
-    /**  The vertical box representing the down lane where arrows travel. */
-    UPROPERTY(meta = (BindWidget))
-    TObjectPtr<UVerticalBox> DownLane;
-
-    /**  The image representing the visual target zone indicator for the left lane. Used for calculating CanvasHeight. */
-    UPROPERTY(meta = (BindWidget))
-    TObjectPtr<UImage> LeftTargetZone;
-
-    /**  The image representing the visual target zone indicator for the right lane. */
-    UPROPERTY(meta = (BindWidget))
-    TObjectPtr<UImage> RightTargetZone;
-
-    /**  The image representing the visual target zone indicator for the up lane. */
-    UPROPERTY(meta = (BindWidget))
-    TObjectPtr<UImage> UpTargetZone;
-
-    /**  The image representing the visual target zone indicator for the down lane. */
-    UPROPERTY(meta = (BindWidget))
-    TObjectPtr<UImage> DownTargetZone;
+    TObjectPtr<UImage> TargetZone;
 
 private:
     // --- Internal State ---
