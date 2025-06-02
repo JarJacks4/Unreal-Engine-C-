@@ -4,14 +4,11 @@
 
 #include "CoreMinimal.h"
 #include "Blueprint/UserWidget.h"
-#include "Components/CanvasPanel.h" // For UImage
+#include "Components/CanvasPanel.h" // For UCanvasPanel
 #include "Arrow_Widget.h" // Include definition for TSubclassOf and TArray
 #include "RythmWidget.generated.h"
-
-
 class UImage;
 class UActorComponent; // For StretchingComponent reference type
-class UStretchingComponent; // Forward declare specific type
 
 /**
  *  Enum representing the possible stretching directions required by the rhythm game lanes.
@@ -58,13 +55,10 @@ public:
      */
     virtual void NativeTick(const FGeometry& MyGeometry, float InDeltaTime) override;
 
-    /**
-     *  Sets the reference to the UStretchingComponent that controls the character's stretching actions.
-     * This allows the widget to check the player's current stretch state when an arrow is hit.
-     *  StretchhRef Pointer to the UStretchingComponent instance on the owning character.
-     */
-    UFUNCTION(BlueprintCallable, Category = "Rhythm|Setup")
-    void SetStretchingComponent(UActorComponent* StretchhRef) { StretchingComponent = StretchhRef; };
+	UFUNCTION(BlueprintCallable, Category = "Rhythm|Access")
+	void OnArrowClicked(UArrow_Widget* ArrowWidget);
+
+
 
     /**
      *  Starts the rhythm game logic.
@@ -115,12 +109,14 @@ public:
 
     /**  Points deducted for hitting an arrow with the correct timing but the wrong pose. */
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Rhythm|Scoring")
-    int32 PenaltyWrongPose = -50;
+    int32 PenaltyOut = -50;
 
     /**  Points deducted for missing an arrow entirely (letting it go past the hit zone). */
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Rhythm|Scoring")
     int32 PenaltyMiss = -25;
 
+	UFUNCTION(BlueprintCallable, Category = "Rhythm|Scoring")
+	void ScoreUpdate(int32 ScoreValue);
 
 protected:
     // --- Widget Bindings (Must be bound in the UMG Editor) ---
@@ -150,9 +146,6 @@ private:
     float SpawnTimer = 0.0f;
 
 
-    /**  Weak pointer reference to the UStretchingComponent. Used to check player state on hit. Set via SetStretchingComponent. */
-    UPROPERTY(Transient)
-    TWeakObjectPtr<UActorComponent> StretchingComponent;
 
     // --- Private Helper Methods ---
 

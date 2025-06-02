@@ -2,15 +2,15 @@
 
 #include "RythmWidget.h"
 #include "Components/VerticalBox.h"
+#include "Escape/EscapeCharacter.h"
+#include "Escape/Components/StretchingComponent.h" // Include for StretchingComponent reference
 #include "Components/Image.h"
 #include "Components/CanvasPanelSlot.h" // Required for casting Slot to get position/size
 #include "Kismet/GameplayStatics.h" // Potentially needed for sound effects
 #include "Kismet/KismetSystemLibrary.h" // Potentially needed for debug drawing
-#include "../Components/StretchingComponent.h" // Include specific component for GetCurrentStretchState
 #include "Arrow_Widget.h" // Ensure Arrow_Widget definition is included
 
-static UStretchingComponent* CachedStretchingComponent = nullptr;
-
+static UStretchingComponent* StretchingComponent = nullptr; // Static reference to the stretching component
 /**
  *  Called when the widget is constructed by the engine.
  * Initializes the mapping of lane indices to required stretch states.
@@ -25,6 +25,26 @@ void URythmWidget::NativeConstruct()
     // Initialize the spawn timer. StartRhythmGame will reset it.
     SpawnTimer = 0.0f;
     bIsGameActive = false; // Ensure game is not active initially
+	if (!Cast<AEscapeCharacter>(GetOwningPlayerPawn())->StretchingComponent) {
+	}
+	else
+	{
+        StretchingComponent = Cast<AEscapeCharacter>(GetOwningPlayerPawn())->StretchingComponent; // Cache the stretching component for later use
+    }
+}
+
+void URythmWidget::OnArrowClicked(UArrow_Widget* Arrow)
+{
+	if (!Arrow || !StretchingComponent)
+	{
+		return; // Safety check
+	}
+
+	ScoreUpdate(ScorePerHit); // Update score based on the arrow clicked
+
+	StretchingComponent->SetStretchState(Arrow->StretchState); // Set the current stretch state based on the arrow clicked
+	Arrow->RemoveFromParent(); // Remove arrow from the screen
+	ActiveArrows.Remove(Arrow); // Remove from active arrows list
 
 }
 
@@ -62,7 +82,7 @@ void URythmWidget::NativeTick(const FGeometry& MyGeometry, float InDeltaTime)
 void URythmWidget::StartRhythmGame()
 {
     ClearActiveArrows(); // Clear any remnants from a previous session
-    Score = 0;
+	Score = StretchingComponent->CompletionPoints; // Reset score to the completion points of the stretching component
     SpawnTimer = 0.0f; // Spawn first arrow immediately
     bIsGameActive = true;
     // Note: Visibility and adding to viewport are handled by the caller (StretchingComponent)
@@ -165,12 +185,19 @@ void URythmWidget::UpdateArrows(float DeltaTime)
         if (ArrowSlot->GetPosition().Y >= Cast<UCanvasPanelSlot>(TargetZone->Slot)->GetPosition().Y + HitZoneTolerance) {
             ActiveArrows[i]->RemoveFromParent(); // Remove missed arrow
 			ActiveArrows.RemoveAt(i); // Remove from active arrows list
-            
-
-            Score -= PenaltyMiss;
-			if (Score <= 0) {
-				Score = 0; // Ensure score doesn't go negative
-			}
+			ScoreUpdate(PenaltyMiss); // Update the score widget in the activity UI
         }
     }
+
+
+}
+
+void URythmWidget::ScoreUpdate(int32 ScoreValue)
+{
+	Score += ScoreValue; // Update the score with the provided value
+    if (Score <= 0) {
+		Score = 0; // Ensure score does not go below zero
+    }
+    Cast<AEscapeCharacter>(GetOwningPlayerPawn())->GetActivityUIWidget()->GetScoreWidget()->UpdateScore(Score); // Update the score widget in the activity UI
+    Cast<AEscapeCharacter>(GetOwningPlayerPawn())->SecondCounterComponent->CompletionPoints = Score;
 }
