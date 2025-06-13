@@ -6,6 +6,15 @@
 #include "Blueprint/UserWidget.h"
 #include "Arrow_Widget.generated.h"
 
+UENUM(BlueprintType)
+enum class EStretchState : uint8
+{
+    StretchLeft UMETA(DisplayName = "Stretch Left"),
+    StretchRight UMETA(DisplayName = "Stretch Right"),
+    StretchUp UMETA(DisplayName = "Stretch Up"),
+    StretchDown  UMETA(DisplayName = "Stretch Down")
+};
+
 /**
  *  UArrow_Widget
  * Represents a single visual arrow element used in the rhythm-based stretching game (URythmWidget).
@@ -21,5 +30,7 @@ class ESCAPE_API UArrow_Widget : public UUserWidget
     GENERATED_BODY()
 public:
     float ConceptualYPosition = 0.0f;
+	EStretchState StretchState = EStretchState::StretchLeft; // Defines the arrow diretion
+
 
 };

@@ -117,7 +117,7 @@ void AEscapeCharacter::BeginPlay()
 	}
 
 	// Platform-specific UI setup for mobile devices.
-	if (UGameplayStatics::GetPlatformName() == "Android" || UGameplayStatics::GetPlatformName() == "IOS" || UGameplayStatics::GetPlatformName() == "Windows"  || UGameplayStatics::GetPlatformName() =="macOS" )
+	if (true)
 	{
 		if (MobileUIWidgetClass)
 		{
@@ -424,6 +424,7 @@ void AEscapeCharacter::Activity()
 			return;
 		case EWellnessBlockType::Stretching:
 			StretchingComponent->StartStretching();
+			GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Green, TEXT("Stretching started0"));
 			return;
 		case EWellnessBlockType::Journaling: 
 			JournalingComponent->StartJournaling(); 

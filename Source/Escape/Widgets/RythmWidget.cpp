@@ -2,17 +2,15 @@
 
 #include "RythmWidget.h"
 #include "Components/VerticalBox.h"
+#include "Escape/EscapeCharacter.h"
+#include "Escape/Components/StretchingComponent.h" // Include for StretchingComponent reference
 #include "Components/Image.h"
 #include "Components/CanvasPanelSlot.h" // Required for casting Slot to get position/size
 #include "Kismet/GameplayStatics.h" // Potentially needed for sound effects
 #include "Kismet/KismetSystemLibrary.h" // Potentially needed for debug drawing
-#include "../Components/StretchingComponent.h" // Include specific component for GetCurrentStretchState
 #include "Arrow_Widget.h" // Ensure Arrow_Widget definition is included
 
-static UCanvasPanelSlot* CachedLeftTargetZoneSlot = nullptr;
-static UCanvasPanelSlot* CachedTargetLaneWidgetSlot = nullptr;
-static UStretchingComponent* CachedStretchingComponent = nullptr;
-
+static UStretchingComponent* StretchingComponent = nullptr; // Static reference to the stretching component
 /**
  *  Called when the widget is constructed by the engine.
  * Initializes the mapping of lane indices to required stretch states.
@@ -23,31 +21,31 @@ void URythmWidget::NativeConstruct()
 {
     Super::NativeConstruct();
 
-    // Initialize the mapping between lane index and the required stretch state.
-    LaneStates.Init(EStretchState::StretchLeft, 4); // Initialize with a default value, size 4
-    LaneStates[0] = EStretchState::StretchLeft;    // Lane 0 corresponds to StretchLeft
-    LaneStates[1] = EStretchState::StretchRight;   // Lane 1 corresponds to StretchRight
-    LaneStates[2] = EStretchState::StretchUp;      // Lane 2 corresponds to StretchUp
-    LaneStates[3] = EStretchState::StretchDown;    // Lane 3 corresponds to StretchDown
 
     // Initialize the spawn timer. StartRhythmGame will reset it.
     SpawnTimer = 0.0f;
     bIsGameActive = false; // Ensure game is not active initially
-
-    // Attempt to calculate the effective canvas height based on the position of the LeftTargetZone.
-    // This assumes the target zones are positioned at the bottom where arrows should be hit or missed.
-    if (LeftTargetZone)
-    {
-        if (!CachedLeftTargetZoneSlot)
-        {
-            CachedLeftTargetZoneSlot = Cast<UCanvasPanelSlot>(LeftTargetZone->Slot);
-        }
-
-        if (CachedLeftTargetZoneSlot)
-        {
-            CanvasHeight = HitZoneCenterY + HitZoneTolerance + 10.0f; // Point slightly past the hit zone
-        }
+	if (!Cast<AEscapeCharacter>(GetOwningPlayerPawn())->StretchingComponent) {
+	}
+	else
+	{
+        StretchingComponent = Cast<AEscapeCharacter>(GetOwningPlayerPawn())->StretchingComponent; // Cache the stretching component for later use
     }
+}
+
+void URythmWidget::OnArrowClicked(UArrow_Widget* Arrow)
+{
+	if (!Arrow || !StretchingComponent)
+	{
+		return; // Safety check
+	}
+
+	ScoreUpdate(ScorePerHit); // Update score based on the arrow clicked
+
+	StretchingComponent->SetStretchState(Arrow->StretchState); // Set the current stretch state based on the arrow clicked
+	Arrow->RemoveFromParent(); // Remove arrow from the screen
+	ActiveArrows.Remove(Arrow); // Remove from active arrows list
+
 }
 
 /**
@@ -84,7 +82,7 @@ void URythmWidget::NativeTick(const FGeometry& MyGeometry, float InDeltaTime)
 void URythmWidget::StartRhythmGame()
 {
     ClearActiveArrows(); // Clear any remnants from a previous session
-    Score = 0;
+	Score = StretchingComponent->CompletionPoints; // Reset score to the completion points of the stretching component
     SpawnTimer = 0.0f; // Spawn first arrow immediately
     bIsGameActive = true;
     // Note: Visibility and adding to viewport are handled by the caller (StretchingComponent)
@@ -125,53 +123,51 @@ void URythmWidget::ClearActiveArrows()
  */
 void URythmWidget::SpawnArrow()
 {
+    GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Green, TEXT("Spawning Arrow 1..."));
     // Ensure necessary components and the arrow widget class are valid before proceeding.
-    if (!ArrowWidgetClass || !LeftLane || !RightLane || !UpLane || !DownLane)
+    if (!ArrowWidgetClass || !TargetZone)
     {
         return;
     }
-
-    const int32 LaneIndex = FMath::RandRange(0, 3);
-    UVerticalBox* TargetLane = nullptr;
-
+	GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Green, TEXT("Spawning Arrow 2..."));
+    const int8 Position = FMath::RandRange(0,3);
+    
     UArrow_Widget* NewArrow = CreateWidget<UArrow_Widget>(GetOwningPlayer(), ArrowWidgetClass);    if (!NewArrow)
     {
         return;
     }
-    NewArrow->ConceptualYPosition = 0.0f; 
-
-    // Determine the target lane and apply initial transformations based on the lane index.
-    switch (LaneIndex)
+    SpawnZonesContainer->AddChild(NewArrow); // Add the new arrow widget to the canvas panel
+	Cast<UCanvasPanelSlot>(NewArrow->Slot)->SetSize(FVector2D(256, 256)); // Set size of the arrow widget
+	GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Green, FString::Printf(TEXT("Spawning Arrow at Position: %d"), Position));
+    switch (Position)
     {
-    case 0: // Left Lane
-        TargetLane = LeftLane;
+    case 0: // Left arrow
+		NewArrow->StretchState = EStretchState::StretchLeft;
+		Cast<UCanvasPanelSlot>(NewArrow->Slot)->SetPosition(Cast<UCanvasPanelSlot>(SpawnZones[0]->Slot)->GetPosition()); // Set initial position
         NewArrow->SetRenderTransformAngle(180);
         break;
-    case 1: // Right Lane
-        TargetLane = RightLane;
+    case 1: // Right arrow
+		NewArrow->StretchState = EStretchState::StretchRight;
+        Cast<UCanvasPanelSlot>(NewArrow->Slot)->SetPosition(Cast<UCanvasPanelSlot>(SpawnZones[1]->Slot)->GetPosition()); // Set initial position
+        NewArrow->SetRenderTransformAngle(-180);
+
         break;
-    case 2: // Up Lane
-        TargetLane = UpLane;
+    case 2: // Up arrow
+		NewArrow->StretchState = EStretchState::StretchUp;
+        Cast<UCanvasPanelSlot>(NewArrow->Slot)->SetPosition(Cast<UCanvasPanelSlot>(SpawnZones[2]->Slot)->GetPosition()); // Set initial position
+
         NewArrow->SetRenderTransformAngle(-90);
         break;
-    case 3: // Down Lane
-        TargetLane = DownLane;
+    case 3: // Down arrow
+		NewArrow->StretchState = EStretchState::StretchDown;
+        Cast<UCanvasPanelSlot>(NewArrow->Slot)->SetPosition(Cast<UCanvasPanelSlot>(SpawnZones[3]->Slot)->GetPosition()); // Set initial position
         NewArrow->SetRenderTransformAngle(90);
         break;
     default:
         NewArrow->RemoveFromParent(); // Clean up
         return;
     }
-
-    if (TargetLane)
-    {
-        TargetLane->AddChildToVerticalBox(NewArrow);
-        ActiveArrows.Add(NewArrow);
-    }
-    else
-    {
-        NewArrow->RemoveFromParent(); // Clean up
-    }
+	ActiveArrows.Add(NewArrow); // Add to active arrows list
 }
 
 /**
@@ -180,120 +176,28 @@ void URythmWidget::SpawnArrow()
  */
 void URythmWidget::UpdateArrows(float DeltaTime)
 {
-    // Get the player's current stretch state once for efficiency.
-    EStretchState PlayerCurrentState = EStretchState::StretchLeft; // Default if component invalid
-    if (!CachedStretchingComponent)
+    
+    for (size_t i = 0; i < ActiveArrows.Num(); i++)
     {
-        CachedStretchingComponent = StretchingComponent.IsValid() ? Cast<UStretchingComponent>(StretchingComponent.Get()) : nullptr;
-    }
-    UStretchingComponent* StretchComp = CachedStretchingComponent;
-    if (StretchComp)
-    {
-        PlayerCurrentState = StretchComp->GetCurrentStretchState();
-    }
+        UCanvasPanelSlot* ArrowSlot = Cast<UCanvasPanelSlot>(ActiveArrows[i]->Slot);
+        ArrowSlot->SetPosition( FVector2D(ArrowSlot->GetPosition().X, ArrowSlot->GetPosition().Y + DeltaTime * ArrowSpeed));
 
-    // Iterate backwards through the list of active arrows to allow safe removal during iteration.
-    for (int32 i = ActiveArrows.Num() - 1; i >= 0; --i)
-    {
-        UArrow_Widget* Arrow = ActiveArrows[i];
-        if (!Arrow) { /* ... remove null arrow ... */ continue; }
-
-        // --- Arrow Movement (Conceptual) ---
-        // Update the conceptual position stored on the arrow widget itself
-        Arrow->ConceptualYPosition += (ArrowSpeed * DeltaTime); // THIS LINE UPDATES THE POSITION
-
-        // --- Hit/Miss Detection ---
-        int32 LaneIndex = -1;
-        // ... (Determine LaneIndex) ...
-
-        bool bArrowProcessed = false;
-
-        if (LaneIndex >= 0)
-        {
-            // Use the updated ConceptualYPosition from the Arrow object for hit check
-            if (CheckHit(Arrow, LaneIndex, Arrow->ConceptualYPosition)) // USE Arrow->ConceptualYPosition
-            {
-                // ... (Handle hit: score, remove arrow) ...
-                bArrowProcessed = true;
-            }
-        }
-        else
-        {
-            // ... (Handle arrow not in lane: remove arrow) ...
-            bArrowProcessed = true;
-        }
-
-        // --- Miss Detection ---
-        // Use the updated ConceptualYPosition from the Arrow object for miss check
-        if (!bArrowProcessed && Arrow->ConceptualYPosition > CanvasHeight) // USE Arrow->ConceptualYPosition
-        {
-            // ... (Handle miss: score, remove arrow) ...
+        if (ArrowSlot->GetPosition().Y >= Cast<UCanvasPanelSlot>(TargetZone->Slot)->GetPosition().Y + HitZoneTolerance) {
+            ActiveArrows[i]->RemoveFromParent(); // Remove missed arrow
+			ActiveArrows.RemoveAt(i); // Remove from active arrows list
+			ScoreUpdate(PenaltyMiss); // Update the score widget in the activity UI
         }
     }
+
+
 }
 
-/**
- *  Checks if an arrow's conceptual Y position falls within the hit timing window.
- *  Arrow The arrow widget (unused).
- *  LaneIndex The lane index (unused).
- *  ArrowY The conceptual Y position of the arrow.
- * @return True if ArrowY is within [HitZoneCenterY - HitZoneTolerance, HitZoneCenterY + HitZoneTolerance].
- */
-bool URythmWidget::CheckHit(UUserWidget* Arrow, int32 LaneIndex, float ArrowY)
+void URythmWidget::ScoreUpdate(int32 ScoreValue)
 {
-    const float HitZoneStartY = HitZoneCenterY - HitZoneTolerance;
-    const float HitZoneEndY = HitZoneCenterY + HitZoneTolerance;
-
-    // Check if the arrow's Y position falls within the hit zone boundaries.
-    return (ArrowY >= HitZoneStartY && ArrowY <= HitZoneEndY);
-}
-
-/**
- *  Calculates the initial X position for spawning an arrow in a specific lane.
- * Tries to get the position from the lane widget's slot if it's in a CanvasPanel.
- * Falls back to a placeholder calculation if position cannot be determined.
- *  LaneIndex The index of the lane (0=Left, 1=Right, 2=Up, 3=Down).
- * @return FVector2D containing the calculated X position and a starting Y position (0.0f).
- */
-FVector2D URythmWidget::GetLanePosition(int32 LaneIndex)
-{
-    float TargetX = 0.0f;
-    UWidget* TargetLaneWidget = nullptr;
-
-    switch (LaneIndex)
-    {
-        case 0: TargetLaneWidget = LeftLane; break;
-        case 1: TargetLaneWidget = RightLane; break;
-        case 2: TargetLaneWidget = UpLane; break;
-        case 3: TargetLaneWidget = DownLane; break;
-        default:
-            return FVector2D(0.0f, 0.0f);
+	Score += ScoreValue; // Update the score with the provided value
+    if (Score <= 0) {
+		Score = 0; // Ensure score does not go below zero
     }
-
-    if (TargetLaneWidget)
-    {
-        if (!CachedTargetLaneWidgetSlot)
-        {
-            CachedTargetLaneWidgetSlot = Cast<UCanvasPanelSlot>(TargetLaneWidget->Slot);
-        }
-
-        if (CachedTargetLaneWidgetSlot)
-        {
-            TargetX = CachedTargetLaneWidgetSlot->GetPosition().X;
-        }
-        else
-        {
-            const float LaneWidthEstimate = 150.0f;
-            const float StartXOffset = 200.0f;
-            TargetX = StartXOffset + (LaneIndex * LaneWidthEstimate);
-        }
-    }
-    else
-    {
-        const float LaneWidthEstimate = 150.0f;
-        const float StartXOffset = 200.0f;
-        TargetX = StartXOffset + (LaneIndex * LaneWidthEstimate);
-    }
-
-    return FVector2D(TargetX, 0.0f);
+    Cast<AEscapeCharacter>(GetOwningPlayerPawn())->GetActivityUIWidget()->GetScoreWidget()->UpdateScore(Score); // Update the score widget in the activity UI
+    Cast<AEscapeCharacter>(GetOwningPlayerPawn())->SecondCounterComponent->CompletionPoints = Score;
 }

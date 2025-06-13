@@ -98,7 +98,7 @@ public:
 
     /** Points awarded for completing the stretching activity. */
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Scoring", meta = (ClampMin = "1", UIMin = "1"))
-    int32 CompletionPoints = 3;
+    int32 CompletionPoints = 40;
 
     /** Minimum points awarded for this activity. */
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Scoring", meta = (ClampMin = "1", UIMin = "1"))

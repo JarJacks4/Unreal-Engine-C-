@@ -8,6 +8,7 @@
 #include "ScoreWidget.h" // For UScoreWidget
 #include "BreathingBubbleWidget.h" // For UBreathingBubbleWidget
 #include "TimerWidget.h" // Add include for TimerWidget
+#include "RythmWidget.h"
 #include "ActivityUIWidget.generated.h"
 
 /**
@@ -26,7 +27,16 @@ class ESCAPE_API UActivityUIWidget : public UUserWidget
 	GENERATED_BODY()
 
 public:
+	// --- Set Up Properties ---
+	// Class of the RythmWidget to be used in the activity UI.
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Activity UI|Widgets")
+	TSubclassOf<URythmWidget> RythmWidgetClass; 
+
+
 	// --- Accessors and Mutators for Child Widgets ---
+
+	
+	
 
 	/**
 	 *  Sets the reference to the UScoreWidget instance used within this activity UI.
@@ -72,6 +82,17 @@ public:
 	UFUNCTION(BlueprintCallable, BlueprintPure, Category = "Activity UI|Access|Deep Breathing") // Added category and BlueprintPure
 	UImage* GetTargetBubble() const { return TargetBubble; }; // Added const
 
+
+	/**
+	 *  Sets the reference to the URythmWidget instance used for the rhythm mini-game.
+	 *  RythmWidgetP Pointer to the URythmWidget instance.
+	 */
+	UFUNCTION(BlueprintCallable, Category = "Activity UI|Access|Stretching") 
+	URythmWidget* GetRythmWidget() const { return RythmWidget; };
+
+	UFUNCTION(BlueprintCallable, Category = "Activity UI|Setup|Stretching")
+	void SettRythmWidget(URythmWidget* RythmWidgetP) { RythmWidget = RythmWidgetP; };
+
 	/**
 	 *  Sets the reference to the UButton instance used for tapping during the deep breathing activity.
 	 *  TapButtonP Pointer to the UButton instance.
@@ -101,6 +122,7 @@ public:
 	UTimerWidget* GetTimerWidget() const { return TimerWidget; };
 
 private:
+	void NativeConstruct() override;
 	/**
 	 *  Pointer to the child UBreathingBubbleWidget instance.
 	 * Should be assigned either via `meta = (BindWidget)` if named identically in UMG, or manually via `SetDeepBreathingWidget`.
@@ -135,4 +157,9 @@ private:
 	 */
 	UPROPERTY(meta = (BindWidgetOptional))
 	TObjectPtr<UTimerWidget> TimerWidget;
+
+	UPROPERTY(meta = (BindWidgetOptional))
+	TObjectPtr<URythmWidget> RythmWidget;
+
+
 };

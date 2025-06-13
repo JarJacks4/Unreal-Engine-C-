@@ -44,8 +44,9 @@ void UStretchingComponent::StartStretching()
     // Clear any existing timers before starting stretching
     ClearStretchingTimer();
 
-    // Only start if currently idle
+    // Only start if currently idleg
     if (CachedEscapeCharacter->GetMinuteGoalActionsState() == EMinuteGoalActionsState::Idle) {
+		GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Green, TEXT("Starting Stretching..."));
         HandleStretchingStart();
     }
 }
@@ -61,19 +62,30 @@ void UStretchingComponent::StopStretching()
     // Only stop if currently stretching
     if (CachedEscapeCharacter->GetMinuteGoalActionsState() == EMinuteGoalActionsState::Stretching)
     {
+		int32 TempCompletionPoints = CompletionPoints;
         HandleStretchingStop();
-
+        if (CachedEscapeCharacter->GetActivityUIWidget() && CachedEscapeCharacter->GetActivityUIWidget()->GetRythmWidget())
+        {
+            // Hide the stretching UI elements
+            CachedEscapeCharacter->GetActivityUIWidget()->GetRythmWidget()->SetVisibility(ESlateVisibility::Hidden);
+            CachedEscapeCharacter->GetActivityUIWidget()->GetRythmWidget()->StopRhythmGame();
+        }
         // Reset character state and stop the score counter
         if (CachedEscapeCharacter->SecondCounterComponent)
         {
             CachedEscapeCharacter->SecondCounterComponent->StopCounter();
         }
+		CompletionPoints = TempCompletionPoints; // Reset to original points before stopping
 
         // Reset character state to Idle
         CachedEscapeCharacter->SetMinuteGoalActionState(EMinuteGoalActionsState::Idle);
 
+		
+
         // Clear any active timers
         ClearStretchingTimer();
+        
+        
     }
 }
 
@@ -106,7 +118,13 @@ void UStretchingComponent::HandleStretchingStart()
     }
     
     StretchingTimer = 0.0f; // Reset internal timer tracking
+    if (CachedEscapeCharacter->GetActivityUIWidget() && CachedEscapeCharacter->GetActivityUIWidget()->GetRythmWidget())
+    {
 
+        CachedEscapeCharacter->GetActivityUIWidget()->GetRythmWidget()->SetVisibility(ESlateVisibility::Visible);
+        CachedEscapeCharacter->GetActivityUIWidget()->GetRythmWidget()->Score = CompletionPoints;
+		CachedEscapeCharacter->GetActivityUIWidget()->GetRythmWidget()->StartRhythmGame();
+    }
     // Play ambient music if assigned
     if (StretchingMusic && GetWorld())
     {

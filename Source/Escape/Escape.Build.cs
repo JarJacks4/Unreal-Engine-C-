@@ -3,7 +3,8 @@
 using UnrealBuildTool;
 
 public class Escape : ModuleRules
-{	public Escape(ReadOnlyTargetRules Target) : base(Target)
+{
+	public Escape(ReadOnlyTargetRules Target) : base(Target)
 	{
 		PCHUsage = PCHUsageMode.UseExplicitOrSharedPCHs;
 
@@ -18,24 +19,14 @@ public class Escape : ModuleRules
                 "AVFoundation"
             });
             
-            // Ensure Objective-C is enabled for iOS
-            bEnableObjCAutomaticReferenceCounting = true;
-        }
-        
-        // Ensure clean separation between platforms
-        if (Target.Platform == UnrealTargetPlatform.Android)
-        {
-            // Explicitly ensure no Objective-C for Android builds
-            bEnableObjCAutomaticReferenceCounting = false;
-        }
-
-        // Only include Objective-C++ source files for iOS
-        if (Target.Platform == UnrealTargetPlatform.IOS)
-        {
+            // DO NOT enable ARC at module level - let individual .mm files handle it
+            // bEnableObjCAutomaticReferenceCounting = true;
+            
+            // Include iOS-specific paths and definitions
             PrivateIncludePaths.AddRange(new string[] { "Escape/Private/IOS" });
-            PrivateDependencyModuleNames.AddRange(new string[] { });            PrivateIncludePathModuleNames.AddRange(new string[] { });
             PrivateDefinitions.Add("WITH_IOS_SPEECH=1");
-            // .mm files in Private/IOS/ will be automatically included for iOS builds
+            
+            // The .mm files will be automatically discovered in Private/IOS/ for iOS builds
         }
         else
         {
