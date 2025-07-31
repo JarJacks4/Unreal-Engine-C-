@@ -513,11 +513,106 @@ void AEscapeCharacter::Look(const FInputActionValue& Value)
 	// Ensure the character has a valid controller.
 	if (Controller != nullptr)
 	{
-		// Apply yaw (horizontal) rotation input to the controller.
+		// Add yaw and pitch input to the controller.
 		AddControllerYawInput(LookAxisVector.X);
-		// Apply pitch (vertical) rotation input to the controller.
 		AddControllerPitchInput(LookAxisVector.Y);
 	}
+}
+
+// --- Safe Access Helper Functions Implementation ---
+
+APawn* AEscapeCharacter::GetSafePlayerPawn(const UObject* WorldContext)
+{
+	if (!WorldContext)
+	{
+		UE_LOG(LogTemp, Warning, TEXT("GetSafePlayerPawn: WorldContext is null"));
+		return nullptr;
+	}
+
+	UWorld* World = GEngine->GetWorldFromContextObject(WorldContext, EGetWorldErrorMode::LogAndReturnNull);
+	if (!World)
+	{
+		UE_LOG(LogTemp, Warning, TEXT("GetSafePlayerPawn: Failed to get World from context"));
+		return nullptr;
+	}
+
+	APlayerController* PC = World->GetFirstPlayerController();
+	if (!PC)
+	{
+		UE_LOG(LogTemp, Warning, TEXT("GetSafePlayerPawn: No PlayerController found"));
+		return nullptr;
+	}
+
+	APawn* PlayerPawn = PC->GetPawn();
+	if (!PlayerPawn)
+	{
+		UE_LOG(LogTemp, Warning, TEXT("GetSafePlayerPawn: PlayerController has no Pawn"));
+		return nullptr;
+	}
+
+	return PlayerPawn;
+}
+
+AEscapeCharacter* AEscapeCharacter::GetSafePlayerCharacter(const UObject* WorldContext)
+{
+	APawn* PlayerPawn = GetSafePlayerPawn(WorldContext);
+	if (!PlayerPawn)
+	{
+		return nullptr;
+	}
+
+	AEscapeCharacter* EscapeChar = Cast<AEscapeCharacter>(PlayerPawn);
+	if (!EscapeChar)
+	{
+		UE_LOG(LogTemp, Warning, TEXT("GetSafePlayerCharacter: PlayerPawn is not an AEscapeCharacter"));
+		return nullptr;
+	}
+
+	return EscapeChar;
+}
+
+bool AEscapeCharacter::AreComponentsValid() const
+{
+	bool bAllValid = true;
+
+	// Check all components
+	if (!MeditationComponent)
+	{
+		UE_LOG(LogTemp, Warning, TEXT("AreComponentsValid: MeditationComponent is null"));
+		bAllValid = false;
+	}
+
+	if (!DeepBreathingComponent)
+	{
+		UE_LOG(LogTemp, Warning, TEXT("AreComponentsValid: DeepBreathingComponent is null"));
+		bAllValid = false;
+	}
+
+	if (!StretchingComponent)
+	{
+		UE_LOG(LogTemp, Warning, TEXT("AreComponentsValid: StretchingComponent is null"));
+		bAllValid = false;
+	}
+
+	if (!WellnessComponent)
+	{
+		UE_LOG(LogTemp, Warning, TEXT("AreComponentsValid: WellnessComponent is null"));
+		bAllValid = false;
+	}
+
+	if (!SecondCounterComponent)
+	{
+		UE_LOG(LogTemp, Warning, TEXT("AreComponentsValid: SecondCounterComponent is null"));
+		bAllValid = false;
+	}
+
+	if (!JournalingComponent)
+	{
+		UE_LOG(LogTemp, Warning, TEXT("AreComponentsValid: JournalingComponent is null"));
+		bAllValid = false;
+	}
+
+	return bAllValid;
 }
 
 /**
