@@ -324,4 +324,26 @@ public:
 	/** Enables or disables on-screen debug messages for the entire game. */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Debug")
 	bool OnScreenDebugBool = true;
+
+	// --- Safe Access Helper Functions ---
+	/**
+	 * Safely gets the player pawn, with null checks
+	 * @return Pointer to the player pawn, or nullptr if not found
+	 */
+	UFUNCTION(BlueprintCallable, BlueprintPure, Category = "Character|Safe Access")
+	static APawn* GetSafePlayerPawn(const UObject* WorldContext);
+
+	/**
+	 * Safely gets the player character, with null checks
+	 * @return Pointer to the escape character, or nullptr if not found
+	 */
+	UFUNCTION(BlueprintCallable, BlueprintPure, Category = "Character|Safe Access")
+	static AEscapeCharacter* GetSafePlayerCharacter(const UObject* WorldContext);
+
+	/**
+	 * Checks if all required components are valid
+	 * @return True if all components are valid, false otherwise
+	 */
+	UFUNCTION(BlueprintCallable, BlueprintPure, Category = "Character|Validation")
+	bool AreComponentsValid() const;
 };

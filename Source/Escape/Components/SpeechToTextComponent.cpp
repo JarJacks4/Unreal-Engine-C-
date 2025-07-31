@@ -23,8 +23,16 @@ extern "C" void StopIOSSpeechRecognition();
 
 void USpeechToTextComponent::BeginPlay(){
     Super::BeginPlay();
-    AudioTextHolder = GetWorld()->SpawnActor<AChatAudioTextHolder>();
-
+    
+    // Add null check before spawning
+    if (GetWorld())
+    {
+        AudioTextHolder = GetWorld()->SpawnActor<AChatAudioTextHolder>();
+        if (!AudioTextHolder)
+        {
+            UE_LOG(LogTemp, Warning, TEXT("Failed to spawn ChatAudioTextHolder in SpeechToTextComponent"));
+        }
+    }
 }
 void USpeechToTextComponent::StartSpeechToText()
 {
@@ -62,12 +70,29 @@ void USpeechToTextComponent::StartSpeechToText()
 
 void USpeechToTextComponent::OnSpeechToTextResult(FString Result)
 {
-    AChatAudioTextHolder* DeepBreathingComponent =  nullptr;
+    AChatAudioTextHolder* DeepBreathingComponent = nullptr;
+    
+    // Add null check before iterating
+    if (Result.IsEmpty())
+    {
+        UE_LOG(LogTemp, Warning, TEXT("SpeechToText result is empty"));
+        return;
+    }
+    
     for (TObjectIterator<AChatAudioTextHolder> It; It; ++It) {
         DeepBreathingComponent = *It;
+        break; // Get the first instance
     }
-    DeepBreathingComponent->IWSetText(Result);
-
+    
+    // Add null check before calling IWSetText
+    if (DeepBreathingComponent)
+    {
+        DeepBreathingComponent->IWSetText(Result);
+    }
+    else
+    {
+        UE_LOG(LogTemp, Warning, TEXT("No ChatAudioTextHolder found for speech result"));
+    }
 }
 
 #if PLATFORM_ANDROID

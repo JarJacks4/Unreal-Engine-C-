@@ -21,16 +21,32 @@ void URythmWidget::NativeConstruct()
 {
     Super::NativeConstruct();
 
-
     // Initialize the spawn timer. StartRhythmGame will reset it.
     SpawnTimer = 0.0f;
     bIsGameActive = false; // Ensure game is not active initially
-	if (!Cast<AEscapeCharacter>(GetOwningPlayerPawn())->StretchingComponent) {
-	}
-	else
+	
+	// Safe access to player character and components
+	APawn* PlayerPawn = GetOwningPlayerPawn();
+	if (!PlayerPawn)
 	{
-        StretchingComponent = Cast<AEscapeCharacter>(GetOwningPlayerPawn())->StretchingComponent; // Cache the stretching component for later use
-    }
+		UE_LOG(LogTemp, Warning, TEXT("URythmWidget::NativeConstruct: No owning player pawn"));
+		return;
+	}
+
+	AEscapeCharacter* EscapeChar = Cast<AEscapeCharacter>(PlayerPawn);
+	if (!EscapeChar)
+	{
+		UE_LOG(LogTemp, Warning, TEXT("URythmWidget::NativeConstruct: Player pawn is not AEscapeCharacter"));
+		return;
+	}
+
+	if (!EscapeChar->StretchingComponent)
+	{
+		UE_LOG(LogTemp, Warning, TEXT("URythmWidget::NativeConstruct: StretchingComponent is null"));
+		return;
+	}
+
+	StretchingComponent = EscapeChar->StretchingComponent;
 }
 
 void URythmWidget::OnArrowClicked(UArrow_Widget* Arrow)
