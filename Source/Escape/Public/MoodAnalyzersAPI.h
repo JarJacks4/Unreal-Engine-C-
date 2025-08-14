@@ -2,16 +2,16 @@
 
 #pragma once
 
-#include "CoreMinimal.h"
-#include "BehaviorTree/BTFunctionLibrary.h"
-#include "MoodAnalyzersAPI.generated.h"
-
-/**
- * 
- */
-UCLASS()
-class ESCAPE_API UMoodAnalyzersAPI : public UBTFunctionLibrary
-{
-	GENERATED_BODY()
-	
-};
+//#include "CoreMinimal.h"
+//#include "BehaviorTree/BTFunctionLibrary.h"
+//#include "MoodAnalyzersAPI.generated.h"
+//
+///**
+// * 
+// */
+//UCLASS()
+//class ESCAPE_API UMoodAnalyzersAPI : public UBTFunctionLibrary
+//{
+//	GENERATED_BODY()
+//	
+//};
