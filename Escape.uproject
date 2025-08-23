@@ -133,11 +133,20 @@
 			"SupportedTargetPlatforms": [
 				"Win64"
 			]
+		},
+		{
+			"Name": "PreLoadScreenMoviePlayer",
+			"Enabled": true
+		},
+		{
+			"Name": "RuntimeMetaHumanLipSync",
+			"Enabled": true
 		}
 	],
 	"TargetPlatforms": [
 		"Android",
 		"Windows",
-		"IOS"
+		"IOS",
+		"Mac"
 	]
 }
