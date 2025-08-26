@@ -127,6 +127,14 @@
 			]
 		},
 		{
+			"Name": "PreLoadScreenMoviePlayer",
+			"Enabled": true
+		},
+		{
+			"Name": "RuntimeMetaHumanLipSync",
+			"Enabled": true
+		},
+		{
 			"Name": "VisualStudioTools",
 			"Enabled": true,
 			"SupportedTargetPlatforms": [
@@ -138,6 +146,7 @@
 	"TargetPlatforms": [
 		"Android",
 		"Windows",
-		"IOS"
+		"IOS",
+		"Mac"
 	]
 }
