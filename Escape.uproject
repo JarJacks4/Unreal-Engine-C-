@@ -131,10 +131,6 @@
 			"Enabled": true
 		},
 		{
-			"Name": "RuntimeMetaHumanLipSync",
-			"Enabled": true
-		},
-		{
 			"Name": "VisualStudioTools",
 			"Enabled": true,
 			"SupportedTargetPlatforms": [
