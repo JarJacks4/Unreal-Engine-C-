@@ -8,7 +8,7 @@ public class Escape : ModuleRules
 	{
 		PCHUsage = PCHUsageMode.UseExplicitOrSharedPCHs;
 
-        PublicDependencyModuleNames.AddRange(new string[] { "Core", "CoreUObject", "Engine", "InputCore", "EnhancedInput", "UMG", "Slate", "SlateCore", "Json", "JsonUtilities", "HTTP", "NavigationSystem" });
+        PublicDependencyModuleNames.AddRange(new string[] { "Core", "CoreUObject", "Engine", "InputCore", "EnhancedInput", "UMG", "Slate", "SlateCore", "Json", "JsonUtilities", "HTTP", "NavigationSystem", "OVRLipSync" });
 
         // iOS-specific frameworks for Speech Recognition - only for iOS builds
         if (Target.Platform == UnrealTargetPlatform.IOS)
