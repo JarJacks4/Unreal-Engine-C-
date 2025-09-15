@@ -1,12 +1,32 @@
-Binaries
-DerivedDataCache
-Intermediate
-Saved
-.vscode
-.vs
+# Ignore build/generated folders
+Binaries/
+DerivedDataCache/
+Intermediate/
+Saved/
+
+# Visual Studio files (Windows)
+.vscode/
+.vs/
 *.VC.db
 *.opensdf
 *.opendb
 *.sdf
 *.sln
 *.suo
+
+# Xcode files (Mac) — track the project/workspace, ignore build
+# Keep .xcodeproj and .xcworkspace tracked
+# *.xcodeproj
+# *.xcworkspace
+build/
+*.pbxuser
+!*.xcodeproj/project.pbxproj
+!*.xcworkspace/contents.xcworkspacedata
+xcuserdata/
+
+# Git LFS files
+Escape.uproject
+
+# Ignore user-specific settings
+*.log
+*.user
