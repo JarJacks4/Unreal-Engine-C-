@@ -13,8 +13,6 @@ Saved/
 *.sdf
 *.sln
 *.suo
-*.xcodeproj
-*.xcworkspace
 
 # Project files
 # Keep .uproject tracked
